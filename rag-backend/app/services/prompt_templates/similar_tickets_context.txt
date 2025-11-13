@@ -1,0 +1,3 @@
+### Similar Past Cloud Application Issues (85%+ match confidence):
+
+{similar_tickets_list}

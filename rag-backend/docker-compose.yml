@@ -1,0 +1,117 @@
+# =====================================================================
+# RAG Backend - Docker Compose Configuration
+# Services: FastAPI Application + Weaviate Vector Database
+# =====================================================================
+
+version: '3.8'
+
+services:
+  # ========== WEAVIATE VECTOR DATABASE ==========
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    container_name: rag_weaviate_db
+    restart: unless-stopped
+    
+    ports:
+      - "${WEAVIATE_PORT:-8080}:8080"
+      - "${WEAVIATE_GRPC_PORT:-50051}:50051"
+    
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      DEFAULT_VECTORIZER_MODULE: 'none'
+      CLUSTER_HOSTNAME: 'node1'
+      ENABLE_GRPC: 'true'
+      GRPC_PORT: '50051'
+    
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/v1/.well-known/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    
+    networks:
+      - rag_backend_network
+
+  # ========== FASTAPI APPLICATION ==========
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    
+    container_name: rag_fastapi_backend
+    restart: unless-stopped
+    
+    ports:
+      - "${API_PORT:-8000}:8000"
+    
+    env_file:
+      - .env
+    
+    environment:
+      # Weaviate connection
+      WEAVIATE_HOST: weaviate
+      WEAVIATE_PORT: 8080
+      WEAVIATE_GRPC_PORT: 50051
+      
+      # API configuration
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      
+      # Python configuration
+      PYTHONPATH: /app
+      PYTHONUNBUFFERED: 1
+      
+      # CORS origins (configure for production)
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      
+      # API Keys (from .env)
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      HUGGINGFACEHUB_API_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
+      
+      # LangSmith (optional)
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING:-false}
+      LANGSMITH_ENDPOINT: ${LANGSMITH_ENDPOINT:-}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-RAG-Backend}
+    
+    volumes:
+      # Development: mount source code for hot-reload
+      - ./app:/app/app
+      # Cache sentence-transformers models
+      - model_cache:/root/.cache/torch/sentence_transformers
+    
+    depends_on:
+      weaviate:
+        condition: service_healthy
+    
+    networks:
+      - rag_backend_network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# ========== VOLUMES ==========
+volumes:
+  weaviate_data:
+    driver: local
+    name: rag_weaviate_data
+  
+  model_cache:
+    driver: local
+    name: rag_model_cache
+
+# ========== NETWORKS ==========
+networks:
+  rag_backend_network:
+    driver: bridge
+    name: rag_backend_network

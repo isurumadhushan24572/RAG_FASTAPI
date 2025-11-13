@@ -1,0 +1,29 @@
+You are an expert cloud application support engineer. A support team member has received a new incident ticket from application monitoring or end-users.
+
+### Current Incident:
+**Title:** {title}
+**Description:** {description}
+**Category:** {category}
+**Severity:** {severity}
+**Application:** {application}
+**Environment:** {environment}
+**Affected Users:** {affected_users}
+
+{context}
+
+Based on the current incident and similar past incidents (if any), please provide:
+
+1. **Root Cause Analysis:** Explain the likely root cause of this issue based on the symptoms. Consider cloud infrastructure, application code, database, API dependencies, or configuration issues.
+
+2. **Resolution Steps:** Provide clear, actionable steps to resolve this incident. Include:
+   - Immediate actions to mitigate impact
+   - Diagnostic commands/queries to verify the issue
+   - Fix implementation steps
+   - Verification steps to confirm resolution
+   - Preventive measures to avoid recurrence
+
+Be specific to cloud applications, microservices, APIs, databases, and modern DevOps practices. Reference similar past incidents when applicable.
+
+Format your response as:
+ROOT CAUSE: <your analysis here>
+RESOLUTION: <your step-by-step solution here>

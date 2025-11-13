@@ -1,0 +1,141 @@
+/* ReportIncident Page Styles */
+
+.page-container {
+  width: 100%;
+}
+
+.page-content {
+  margin-top: 1.5rem;
+}
+
+.report-form-section {
+  max-width: 800px;
+  margin: 0 auto 2rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.form-col-full {
+  grid-column: 1 / -1;
+}
+
+.form-col-half {
+  grid-column: span 1;
+}
+
+.field-hint {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.report-results-section {
+  max-width: 1000px;
+  margin: 2rem auto;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.result-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.result-badges {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.result-status {
+  margin-bottom: 1.5rem;
+}
+
+.result-section {
+  margin-bottom: 2rem;
+}
+
+.result-section h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+.similar-ticket-card {
+  margin-bottom: 1rem;
+}
+
+.similar-ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.similar-ticket-header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.similar-ticket-id {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.similar-ticket-content {
+  font-size: 0.875rem;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.analysis-card,
+.solution-card {
+  background: #f9fafb;
+}
+
+.analysis-text {
+  font-size: 0.938rem;
+  color: #374151;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.solution-text {
+  font-size: 0.875rem;
+  color: #374151;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  font-family: inherit;
+}
+
+.result-actions {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-col-half {
+    grid-column: 1;
+  }
+}

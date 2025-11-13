@@ -1,0 +1,42 @@
+# Docker Compose configuration for RAG Frontend
+# Standalone React Application served by Nginx
+
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+        NODE_ENV: production
+    
+    container_name: rag_frontend
+    restart: unless-stopped
+    
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    
+    networks:
+      - frontend_network
+    
+    environment:
+      - NODE_ENV=production
+    
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    labels:
+      - "com.rag.service=frontend"
+      - "com.rag.version=1.0.0"
+      - "com.rag.description=React Frontend for RAG Support System"
+
+networks:
+  frontend_network:
+    driver: bridge
+    name: rag_frontend_network

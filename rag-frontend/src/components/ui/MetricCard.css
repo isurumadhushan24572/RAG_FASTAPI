@@ -1,0 +1,66 @@
+/* MetricCard Component Styles */
+
+.metric-card {
+  border-left: 4px solid;
+}
+
+.metric-card-primary {
+  border-left-color: #0078d4;
+}
+
+.metric-card-success {
+  border-left-color: #10b981;
+}
+
+.metric-card-danger {
+  border-left-color: #ef4444;
+}
+
+.metric-card-warning {
+  border-left-color: #f59e0b;
+}
+
+.metric-card-info {
+  border-left-color: #3b82f6;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.metric-icon {
+  font-size: 1.75rem;
+}
+
+.metric-trend {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.metric-trend-up {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.metric-trend-down {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.metric-title {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}

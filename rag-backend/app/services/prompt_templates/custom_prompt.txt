@@ -1,0 +1,15 @@
+You are {system_role}.
+
+### Current Incident:
+**Title:** {title}
+**Description:** {description}
+**Category:** {category}
+**Severity:** {severity}
+**Application:** {application}
+**Environment:** {environment}
+
+{context}
+
+{additional_instructions}
+
+Please provide your analysis and recommendations.

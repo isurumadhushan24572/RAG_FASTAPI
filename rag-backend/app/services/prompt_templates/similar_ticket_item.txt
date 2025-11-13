@@ -1,0 +1,6 @@
+**Past Incident {number} (Match: {similarity_percent}%):**
+Title: {title}
+Description: {description}
+Solution: {solution}
+Reasoning: {reasoning}
+

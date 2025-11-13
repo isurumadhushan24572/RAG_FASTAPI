@@ -1,0 +1,120 @@
+# ========== PYTHON CACHE & BYTECODE ==========
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# ========== BUILD & DISTRIBUTION ==========
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ========== VIRTUAL ENVIRONMENTS ==========
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+RAG_FAST_API/
+
+
+# ========== IDES & EDITORS ==========
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# ========== TESTING ==========
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+.cache
+
+# ========== DOCUMENTATION ==========
+docs/_build/
+site/
+
+# ========== DOCKER (exclude from build context) ==========
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# ========== GIT ==========
+.git/
+.gitignore
+.gitattributes
+
+# ========== ENVIRONMENT FILES ==========
+# .env files are copied explicitly in Dockerfile
+# Uncomment to exclude from build context:
+# .env
+# .env.*
+
+# ========== LOGS ==========
+*.log
+logs/
+*.log.*
+
+# ========== DATA FILES (optional) ==========
+# Uncomment if you don't want data in image:
+# *.json
+# *.csv
+# *.xlsx
+# data/
+
+# ========== JUPYTER NOTEBOOKS ==========
+.ipynb_checkpoints/
+*.ipynb
+
+# ========== OS FILES ==========
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# ========== TEMPORARY FILES ==========
+*.tmp
+*.bak
+*.swp
+temp/
+tmp/
+*.temp
+
+# ========== NODE MODULES (if any) ==========
+node_modules/
+
+# ========== MARKDOWN DOCS (optional) ==========
+# Uncomment to exclude from image:
+*.md
+MD/
+docs/
+Json_Files/
+
+
+.env.example

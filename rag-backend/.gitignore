@@ -1,0 +1,84 @@
+# ========== PYTHON CACHE & BYTECODE ==========
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# ========== BUILD & DISTRIBUTION ==========
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ========== VIRTUAL ENVIRONMENTS ==========
+venv/
+env/
+ENV/
+.venv/
+env.bak/
+venv.bak/
+RAG_FAST_API/
+
+# ========== IDES & EDITORS ==========
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ========== ENVIRONMENT FILES ==========
+.env
+.env.local
+.env.*.local
+
+# Keep .env.example
+!.env.example
+
+# ========== DOCKER ==========
+docker-compose.override.yml
+
+# ========== TESTING ==========
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ========== LOGS ==========
+*.log
+logs/
+
+# ========== OS FILES ==========
+Thumbs.db
+.DS_Store
+
+# ========== TEMPORARY FILES ==========
+*.tmp
+*.bak
+temp/
+tmp/
+
+# ========== JUPYTER ==========
+.ipynb_checkpoints/
+*.ipynb
+
+# ========== MODEL CACHE ==========
+# .cache/
+# models/
+# *.pt
+# *.pth
+# *.bin
+
+# ========== DATA FILES (optional) ==========
+# Uncomment if you don't want to track data files:
+*.json
+*.csv
+data/
+
+Json_Files/

@@ -1,0 +1,31 @@
+# FastAPI framework for building REST APIs
+fastapi
+
+# Uvicorn - ASGI server to run FastAPI application
+uvicorn
+
+# Pydantic - Data validation using Python type hints
+pydantic
+
+# Pydantic Settings - For managing application settings
+pydantic_settings
+
+# ===================== WEAVIATE VECTOR DATABASE CLIENT =====================
+# Weaviate Python client v4 for vector database operations
+weaviate-client
+
+# ===================== ENVIRONMENT CONFIGURATION =====================
+# Python-dotenv for loading environment variables from .env file
+python-dotenv
+
+# ===================== HTTP REQUESTS (Optional for future use) =====================
+# Requests library for making HTTP requests
+requests
+
+# ===================== LOCAL EMBEDDINGS =====================
+# Sentence Transformers for local text embeddings
+sentence-transformers
+
+# ===================== LANGCHAIN INTEGRATION =====================
+# LangChain library for building applications with LLMs
+langchain_groq

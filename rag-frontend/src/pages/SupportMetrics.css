@@ -1,0 +1,81 @@
+/* SupportMetrics Page Styles */
+
+.metrics-section {
+  margin-bottom: 2.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.metrics-grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.recent-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  border-left: 3px solid #0078d4;
+}
+
+.recent-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.recent-content {
+  flex: 1;
+}
+
+.recent-title {
+  font-size: 0.938rem;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.recent-title strong {
+  font-weight: 600;
+}
+
+.recent-meta {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .metrics-grid,
+  .metrics-grid-auto {
+    grid-template-columns: 1fr;
+  }
+
+  .recent-item {
+    flex-direction: column;
+  }
+
+  .recent-badges {
+    flex-direction: row;
+  }
+}
