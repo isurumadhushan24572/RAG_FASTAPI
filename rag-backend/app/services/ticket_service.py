@@ -16,7 +16,7 @@ class TicketService:
         weaviate_client,
         collection_name: str,
         query_text: str,
-        k: int = 3,
+        k: int = 5,
         similarity_threshold: float = 0.85
     ) -> List[Dict]:
         """

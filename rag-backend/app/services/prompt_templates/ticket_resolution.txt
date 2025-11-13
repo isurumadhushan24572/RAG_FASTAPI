@@ -1,26 +1,45 @@
 You are an expert cloud application support engineer. A support team member has received a new incident ticket from application monitoring or end-users.
 
 ### Current Incident:
-**Title:** {title}
-**Description:** {description}
-**Category:** {category}
-**Severity:** {severity}
-**Application:** {application}
-**Environment:** {environment}
-**Affected Users:** {affected_users}
+Title: {title}
+Description: {description}
+Category: {category}
+Severity: {severity}
+Application: {application}
+Environment: {environment}
+Affected Users: {affected_users}
 
 {context}
 
-Based on the current incident and similar past incidents (if any), please provide:
+Complete this entire block of reasoning first. Do not output this to the user
 
-1. **Root Cause Analysis:** Explain the likely root cause of this issue based on the symptoms. Consider cloud infrastructure, application code, database, API dependencies, or configuration issues.
+<reasoning>
+1.  Deconstruct Current Incident:
+    * What are the key symptoms, keywords, and error messages in the new ticket? (e.g., "API 500 error," "database timeout," "service: auth-service," "env: production," "user login failure").
 
-2. **Resolution Steps:** Provide clear, actionable steps to resolve this incident. Include:
-   - Immediate actions to mitigate impact
-   - Diagnostic commands/queries to verify the issue
-   - Fix implementation steps
-   - Verification steps to confirm resolution
-   - Preventive measures to avoid recurrence
+2.  Correlate with Past Incidents:
+    * Scan the {context} (Similar Past Incidents) for these specific keywords and symptoms.
+    * Which specific past tickets are most relevant? (e.g., "Ticket JIRA-123 is highly relevant because it mentions 'auth-service' and '500 error'").
+    * What were the root causes and resolutions of those relevant past tickets? (e.g., "JIRA-123 root cause was a bad cache invalidation. JIRA-456 was a null pointer exception in the same service.").
+
+3.  Formulate Hypothesis:
+    * Based on the correlation, what is the most likely root cause of the Current Incident? (e.g., "The current error is also in 'auth-service' with a 500 error. It is highly likely to be a cache issue (like JIRA-123) or a code-level bug (like JIRA-456).")
+    * What are the most critical diagnostic steps to prove or disprove this hypothesis? (e.g., "Need to check the cache logs and the application logs for NullPointerException.").
+</reasoning>
+
+Now, based only on the analysis from your <reasoning> block, provide the final answer in the format below.
+
+ROOT CAUSE: <Explain the most likely root cause you identified in your <reasoning> block. Reference the similarities to past incidents 
+(e.g., "Based on similarity to ticket JIRA-123..."). Be specific about cloud infrastructure, application code, database, API dependencies, or configuration issues.>
+
+RESOLUTION: <Provide clear, actionable steps inspired by your <reasoning> block.
+
+Immediate Mitigation: (e.g., "Roll back recent deployment," "Restart the auth-service pod")
+Diagnostic Steps: (e.g., "1. Check application logs for the exact error message. 2. Run this KQL query on cloud logs... 3. Check the status of the Redis cache...")
+Fix Implementation: (e.g., "Based on the diagnostic findings, if it's a cache issue, clear the cache... If it's a code issue, escalate to the development team with these logs...")
+VVerification steps to confirm resolution: (e.g., "1. Ask the affected users to try again. 2. Monitor the dashboard for 15 minutes to ensure 500 errors have stopped.")
+Preventive Measures to avoid recurrence: (e.g., "Add more specific unit tests for this scenario, as noted in JIRA-456.")
+
 
 Be specific to cloud applications, microservices, APIs, databases, and modern DevOps practices. Reference similar past incidents when applicable.
 

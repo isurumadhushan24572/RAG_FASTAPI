@@ -1,0 +1,180 @@
+﻿Title,Description,Application,,Similar_Past_Tickets_Identified,Root Cause Analysis,Resolution Steps,Evaluation
+Data Factory connection to SQL database returns error 2108 for missing vault credential,Our ETL pipelines in Azure Data Factory cannot connect to SQL Database anymore. Getting error code 2108 which means the vault secret reference doesn't exist. This issue appeared right after we updated our credentials.,ADF - Linked Service: Azure SQL (prod),,TKT-0001 (ADF Linked Service to Azure SQL failing with ErrorCode 2108 (Key Vault secret not found),"The likely root cause of this issue is related to the update of credentials in the Azure Data Factory (ADF) Linked Service that connects to the Azure SQL database. Specifically, the error code 2108 indicates that the vault secret reference doesn't exist, which suggests that the Key Vault secret version being referenced by the ADF Linked Service is no longer valid or does not exist. This is consistent with the similar past incident (Past Incident 1), where secret rotation led to a new version of the secret being created, but the ADF Linked Service was still referencing the old, non-existent version. The update of credentials likely triggered a similar scenario, where the new credentials are not properly referenced or configured in the Key Vault or the ADF Linked Service.","### Immediate Actions to Mitigate Impact:
+1. **Pause Affected Pipelines**: Temporarily pause all nightly ingestion pipelines that depend on the Azure SQL connection to prevent further failures and data inconsistencies.
+2. **Notify Stakeholders**: Inform all relevant stakeholders about the issue, the cause, and the estimated time to resolve.
+
+### Diagnostic Commands/Queries:
+1. **Check Key Vault Secrets**: Verify the current version of the secret in Key Vault and ensure it matches the one expected by the ADF Linked Service.
+   - Use Azure CLI or Azure Portal to check the secret version.
+2. **Verify ADF Linked Service Configuration**: Check the ADF Linked Service configuration to see if it is referencing the correct and latest version of the Key Vault secret.
+   - Use Azure Portal or Azure Data Factory UI to inspect the Linked Service settings.
+
+### Fix Implementation Steps:
+1. **Update Linked Service to Use 'Latest' Secret Version**: Modify the ADF Linked Service to reference the 'latest' version of the secret in Key Vault, rather than a specific version. This ensures that the Linked Service always uses the current version of the secret.
+   - Edit the Linked Service in Azure Data Factory, updating the secret reference to use 'latest'.
+2. **Sync ADF Managed Identity Permissions on Key Vault**: Ensure that the ADF managed identity has the necessary permissions on Key Vault to get or list secrets.
+   - Go to Key Vault > Access policies, and verify that the ADF managed identity has 'Get' and 'List' permissions for secrets.
+3. **Trigger Pipeline Reruns**: Once the configuration is updated, trigger a rerun of the paused pipelines to validate that the connectivity issue is resolved.
+
+### Verification Steps:
+1. **Monitor Pipeline Runs**: Closely monitor the rerun of the pipelines to ensure they complete successfully without any 2108 errors.
+2. **Validate Data Ingestion**: Verify that data is being ingested correctly into the Azure SQL database by checking the database for new or updated records.
+3. **Check Key Vault and ADF Logs**: Review logs from both Key Vault and Azure Data Factory to confirm that there are no issues with secret retrieval or pipeline execution.
+
+### Preventive Measures:
+1. **Automate Secret Rotation**: Implement automated secret rotation and update processes for Key Vault secrets to minimize manual intervention and reduce the risk of similar issues in the future.
+2. **Regularly Review ADF Linked Services**: Schedule regular reviews of ADF Linked Services to ensure they are configured to use the latest secret versions and that managed identities have appropriate permissions.
+3. **Implement Alerting for Key Vault and ADF**: Set up monitoring and alerting for Key Vault secret versions and ADF pipeline failures to quickly identify and address potential issues before they impact production workflows.",9.5/10
+Access denied errors on mounted storage paths after credential refresh,Our notebooks are getting 403 forbidden errors when accessing data lake through DBFS mount points. The service principal credentials were just renewed and now the mount isn't working.,Databricks - DBFS Mounts,,TKT-0012 (Databricks DBFS mount to ADLS broken after SPN secret rotation),"The likely root cause of this issue is the recent renewal of the service principal credentials, which has invalidated the existing credentials used for mounting the DBFS paths. This is similar to Past Incident 1, where the expiration of the service principal secret caused 403 errors when accessing mounted paths. The renewal of credentials would have changed the authentication tokens or secrets required for accessing the data lake through DBFS mounts, leading to access denied errors (403 Forbidden) for all teams reading from /mnt/raw.","### Immediate Actions to Mitigate Impact:
+1. **Notify Affected Teams:** Inform all teams that rely on the /mnt/raw mount point about the issue and the expected downtime for resolution.
+2. **Assess Critical Dependencies:** Identify any critical workflows, jobs, or notebooks that are immediately impacted by this issue and prioritize their recovery.
+
+### Diagnostic Commands/Queries:
+1. **Verify Mount Status:** Use `dbutils.fs.mounts()` to list all mounted paths and verify their status.
+2. **Check Service Principal Credentials:** Confirm that the service principal credentials have been updated correctly in the Key Vault-backed scope or wherever they are stored.
+3. **Test Access:** Attempt to access the data lake using the DBFS mount point manually to reproduce the 403 error.
+
+### Fix Implementation Steps:
+1. **Update Service Principal Credentials:** Ensure the latest service principal credentials are correctly updated in the Key Vault-backed scope or the designated credential storage.
+2. **Remount DBFS Paths:** Use `dbutils.fs.mount()` to remount the DBFS paths with the new credentials. The command should include the updated service principal credentials and any other required parameters for mounting.
+3. **Validate Access:** After remounting, validate access to the data lake through the DBFS mount points to ensure that the 403 errors are resolved.
+
+### Verification Steps:
+1. **Test Notebooks:** Run test notebooks or jobs that rely on the /mnt/raw mount point to verify that they can access the data lake without encountering 403 errors.
+2. **Monitor Application Logs:** Keep an eye on application logs for any recurrence of the 403 errors or other issues related to DBFS mounts.
+3. **User Feedback:** Solicit feedback from affected teams to confirm that they can access the required data without issues.
+
+### Preventive Measures:
+1. **Automate Credential Rotation:** Implement an automated process for rotating service principal credentials to prevent similar issues in the future. This could involve using Azure services like Azure Key Vault and Azure Active Directory (AAD) to manage and rotate credentials.
+2. **Schedule Regular Checks:** Regularly check the expiration dates of service principal secrets and update them before they expire to prevent access issues.
+3. **Develop a Runbook:** Create a runbook for handling service principal credential rotations and DBFS mount updates to streamline the process and reduce downtime in case of future credential changes.
+4. **Alerting and Monitoring:** Set up alerts for service principal credential expirations and monitor DBFS mount health to quickly identify and address potential issues before they impact users.",9.5/10
+Machine learning model training runs out of memory on driver node,Training XGBoost on a dataset with 50 million rows crashes the driver with an out-of-memory exception. We're running everything on a single machine without distribution.,ML Training Notebooks,,TKT-0030 (Notebook 'OutOfMemoryError' during XGBoost training),"### The likely root cause of this issue is that the machine learning model training process, specifically XGBoost on a large dataset of 50 million rows, is consuming more memory than is available on the driver node. This is exacerbated by the fact that the training is being conducted on a single machine without distribution, meaning all the data and computation are centralized on one node. This scenario is similar to Past Incident 1, where the training process failed due to an out-of-memory error on the driver node during XGBoost training on a dataset of similar size. The root cause, therefore, points towards insufficient memory allocation for the driver node to handle the large dataset and the computationally intensive XGBoost training process. ###","1. **Immediate Actions to Mitigate Impact:**
+   - Notify the affected users (Data science team) about the ongoing issue and the expected resolution time.
+   - Consider temporarily suspending or queuing new model training requests to prevent further crashes until the issue is resolved.
+
+2. **Diagnostic Commands/Queries to Verify the Issue:**
+   - Check the memory usage logs of the driver node during the time of the crash to confirm that the out-of-memory exception was indeed the cause.
+   - Verify the dataset size and the specific XGBoost training parameters used to understand the memory requirements.
+   - Use commands like `free -m` or `top` to monitor the memory usage on the driver node in real-time while the training is running.
+
+3. **Fix Implementation Steps:**
+   - **Switch to Distributed Training:** Configure the training process to use distributed computing. This can involve setting up a cluster of nodes where data can be split and processed in parallel, significantly reducing the memory load on any single node.
+   - **Increase Driver Memory:** If possible, increase the memory allocation to the driver node. However, this might not be feasible or cost-effective for very large datasets.
+   - **Optimize Memory Usage:**
+     - **Downcast dtypes:** Where possible, reduce the data type precision to use less memory (e.g., using `float32` instead of `float64`).
+     - **Enable Sparse Matrices:** If the dataset contains a lot of zeros, using sparse matrix representations can significantly reduce memory usage.
+     - **Implement Early Stopping and Chunked Training:** Implement early stopping to halt the training process when the model's performance on the validation set starts to degrade, and consider training on chunks of the data rather than the entire dataset at once.
+
+4. **Verification Steps to Confirm Resolution:**
+   - After implementing the distributed training and memory optimization strategies, re-run the XGBoost training process on the 50 million row dataset.
+   - Monitor the memory usage on the driver node and the overall performance of the training process to ensure that it completes without running out of memory.
+   - Validate the model's performance to ensure that the optimizations did not negatively impact the model's accuracy or effectiveness.
+
+5. **Preventive Measures to Avoid Recurrence:**
+   - **Monitoring:** Regularly monitor the memory usage and performance of the driver node during training processes.
+   - **Automated Scaling:** Consider implementing automated scaling for the driver node or the distributed cluster based on the workload to dynamically adjust resources as needed.
+   - **Best Practices Documentation:** Update documentation and guidelines for the data science team on best practices for training large models, including the use of distributed training, memory optimization techniques, and the importance of monitoring resource usage.",9.0/10
+Cloud storage staging area failing with expired access signature,Our COPY command from the external staging location is failing because the shared access signature token is no longer valid. We rotated the secret but the stage definition still uses the old one.,Snowflake - External Stage ,,TKT-0051 (Snowflake external stage to ADLS failing: SAS token invalid),"### The likely root cause of this issue is that the Snowflake external stage is still configured to use an expired shared access signature (SAS) token. This token was invalidated when the secret was rotated, but the stage definition was not updated to reflect the new token. As a result, any COPY commands attempting to use this stage are failing due to authentication issues, specifically because the SAS token is no longer valid. This scenario is consistent with Past Incident 1, where a similar issue occurred due to an invalid SAS token after secret rotation. ###","1. **Immediate Actions:**
+   - Notify the affected teams (e.g., data ingestion teams) about the ongoing issue and the estimated time to resolve.
+   - If possible, pause any automated jobs that rely on the failed COPY command to prevent further failures and potential data inconsistencies.
+
+2. **Diagnostic Commands/Queries:**
+   - Verify the current stage configuration using Snowflake's `DESCRIBE STAGE` command to confirm the SAS token in use.
+   - Check the system logs for any error messages related to authentication failures or invalid SAS tokens.
+
+3. **Fix Implementation Steps:**
+   - **Regenerate SAS Token:**
+     1. Generate a new SAS token with the correct permissions for the external staging location. Ensure the token has the necessary read permissions for the Snowflake service.
+   - **Update Stage Credentials:**
+     1. Use Snowflake's `CREATE OR REPLACE STAGE` command to update the stage credentials with the new SAS token. The command should include the `CREDENTIALS` parameter with the updated token.
+     2. Example: `CREATE OR REPLACE STAGE my_external_stage URL='https://myaccount.blob.core.windows.net/mycontainer' CREDENTIALS '(AZURE_SAS_TOKEN=""<new_sas_token>"")';`
+   - **Validate Stage Configuration:**
+     1. After updating the stage, use `DESCRIBE STAGE` again to verify that the new SAS token is correctly configured.
+
+4. **Verification Steps:**
+   - **Test COPY Command:**
+     1. Execute a test COPY command to verify that data can be successfully loaded from the external stage into Snowflake.
+   - **Monitor System Logs:**
+     1. Check system logs for any errors related to the SAS token or authentication. If issues persist, revisit the stage configuration and SAS token generation process.
+
+5. **Preventive Measures:**
+   - **Automate Secret Rotation:**
+     1. Implement an automated secret rotation process that updates all dependent services, including Snowflake stages, with new credentials.
+   - **Schedule Regular Audits:**
+     1. Regularly audit external stages and their configurations to ensure they are up-to-date and aligned with the latest security best practices.
+   - **Develop a Runbook:**
+     1. Create a runbook that outlines the steps for updating Snowflake stage credentials after a secret rotation. This will streamline the process for future occurrences.
+
+By following these steps, the issue with the expired access signature should be resolved, and measures can be put in place to prevent similar incidents in the future. The approach is informed by the resolution of Past Incident 1, adapting the solution to fit the specifics of the current incident.",9.5/10
+Auto-ingestion pipe not loading new files from storage,The snowpipe appears healthy in the console but isn't processing any new files. The storage event notification system was turned off after a recent policy update.,Snowflake - Snowpipe,,TKT-0058 (Snowpipe stopped ingesting: notification integration disabled),"The likely root cause of this issue is the disablement of the storage event notification system after a recent policy update. This is similar to Past Incident 1, where the storage event notifications were disabled, preventing the Snowpipe from being triggered to ingest new files. The fact that the Snowpipe appears healthy in the console but isn't processing new files suggests that the issue lies not with the Snowpipe itself, but with the mechanism that triggers it. Given that storage event notifications are crucial for auto-ingestion pipes to load new files, their disablement would directly impact the functionality of the Snowpipe, leading to the observed symptoms.","### Immediate Actions to Mitigate Impact:
+1. **Notify Stakeholders:** Inform near-real-time ingestion consumers about the issue and the expected resolution time to manage their expectations.
+2. **Manual Ingestion (If Possible):** Consider manually ingesting critical files to minimize the impact on dependent applications or processes, if the business requires immediate data availability.
+
+### Diagnostic Commands/Queries:
+1. **Check Storage Event Notifications:** Verify the status of storage event notifications to confirm they are disabled.
+2. **Snowpipe Status:** Run a query to check the current status of the Snowpipe, such as `SELECT * FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY())` to see if there are any recent copy operations.
+3. **Notification Integration:** Validate the integration settings between the storage and Snowflake to ensure there are no other configuration issues.
+
+### Fix Implementation Steps:
+1. **Re-enable Event Notifications:** On the storage container, re-enable event notifications. This step is crucial as it will allow the Snowpipe to be triggered again.
+2. **Validate Integration and Recreate Subscription:** Ensure the integration between the storage and Snowflake is correctly configured. If necessary, recreate the subscription to guarantee that notifications are properly sent and received.
+3. **Implement Monitoring for Pipe Latency:** Set up monitoring for Snowpipe latency to quickly identify and address any future issues that might arise, similar to what was done in Past Incident 1.
+
+### Verification Steps:
+1. **Check for New Ingestions:** After re-enabling event notifications and validating the integration, monitor the Snowpipe to ensure it starts ingesting new files.
+2. **Query Copy History:** Run a query like `SELECT * FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY())` to verify recent copy operations and confirm that new files are being ingested.
+3. **Validate Data Integrity:** Perform checks to ensure the integrity and completeness of the ingested data.
+
+### Preventive Measures:
+1. **Review Policy Updates:** Before applying policy updates that could affect critical services like storage event notifications, assess their potential impact on dependent systems like Snowpipe.
+2. **Automated Monitoring:** Enhance monitoring to automatically detect when critical services like storage event notifications are disabled or not functioning as expected.
+3. **Documentation and Training:** Update documentation and provide training to relevant teams on the importance of storage event notifications for Snowpipe functionality and the steps to re-enable them if disabled.",9.0/10
+,,,,,,,
+Azure Synapse dedicated SQL pool experiencing automatic pause during active workload,Our dedicated SQL pool keeps pausing automatically even though we have active queries running. This is disrupting our real-time analytics dashboards and causing connection failures for BI tools.,Synapse - Dedicated SQL Pool,,,"### The automatic pause of the Azure Synapse dedicated SQL pool during active workload is likely due to the auto-pause feature in Azure Synapse Analytics, which is designed to pause the dedicated SQL pool after a period of inactivity to save costs. However, in this case, the pool is pausing even when there are active queries running, suggesting a potential misconfiguration or an issue with how the system is interpreting ""inactivity."" Other possible causes could include resource constraints, such as insufficient CPU or memory, leading the system to pause the pool to manage resources, or issues with the connection pool or query patterns that are being misinterpreted as inactivity. ###","#### Immediate Actions to Mitigate Impact:
+1. **Disable Auto-Pause**: Temporarily disable the auto-pause feature on the dedicated SQL pool to prevent further interruptions. This can be done through the Azure portal by navigating to your Synapse workspace, selecting the dedicated SQL pool, and adjusting the settings under ""Additional settings"" or ""Configuration"" to disable auto-pause.
+2. **Notify Affected Teams**: Inform the analytics team and dashboard consumers about the temporary workaround and the ongoing investigation to resolve the root cause.
+
+#### Diagnostic Commands/Queries to Verify the Issue:
+1. **Check SQL Pool Metrics**: Use Azure Monitor to review metrics related to the dedicated SQL pool, such as CPU usage, memory usage, and the number of active queries, to understand the workload and resource utilization patterns.
+2. **Query Activity Logs**: Analyze the query activity logs to identify any patterns or specific queries that might be contributing to the pause events.
+3. **System Views**: Utilize system views in the dedicated SQL pool, such as `sys.dm_pdw_wait_stats` and `sys.dm_pdw_resource_waits`, to diagnose any wait types or resource bottlenecks.
+
+#### Fix Implementation Steps:
+1. **Adjust Auto-Pause Settings**: If disabling auto-pause resolves the issue, adjust the auto-pause delay setting to a higher value to ensure that the pool does not pause during expected periods of activity.
+2. **Optimize Queries and Workload**: Based on the analysis of query activity logs and system views, optimize queries and the overall workload to reduce resource contention and improve efficiency.
+3. **Scale Resources**: If necessary, scale up the dedicated SQL pool to a larger size to provide more resources (CPU, memory) to handle the workload without pausing.
+
+#### Verification Steps to Confirm Resolution:
+1. **Monitor Pool Activity**: Closely monitor the dedicated SQL pool's activity and metrics after implementing the fixes to ensure that it no longer pauses during active workloads.
+2. **Test Workload Scenarios**: Simulate various workload scenarios to verify that the pool remains active and performs as expected under different conditions.
+3. **Validate End-User Experience**: Confirm with the analytics team and dashboard consumers that the real-time analytics dashboards are functioning correctly and that there are no longer any connection failures for BI tools.
+
+#### Preventive Measures to Avoid Recurrence:
+1. **Regularly Review Workload Patterns**: Periodically analyze workload patterns and adjust auto-pause settings or resource allocations as needed to prevent future occurrences.
+2. **Implement Alerting**: Set up alerts in Azure Monitor for specific conditions, such as low resource utilization followed by a pause event, to quickly identify and address potential issues before they impact users.
+3. **Optimize and Maintain Queries**: Regularly review and optimize queries to ensure they are efficient and do not contribute to resource bottlenecks or unnecessary pause events.",8.5/10
+Power BI embedded reports timing out when connecting to Analysis Servicse,"Embedded Power BI reports in our application are timing out when querying Azure Analysis Services. Direct queries from Power BI Desktop work fine, but embedded scenarios fail after 30 seconds.",Power BI Embedded,,,"### The likely root cause of this issue is related to the configuration or interaction between Power BI Embedded and Azure Analysis Services, particularly in how queries are handled in embedded scenarios versus direct queries from Power BI Desktop. Several potential factors could contribute to this issue: - **Timeout Settings:** The timeout settings for queries in Power BI Embedded might be too low, causing the queries to timeout after 30 seconds, whereas Power BI Desktop might have different or more flexible timeout settings. - **Query Complexity:** The complexity of the queries being run in the embedded reports could be higher than those run directly from Power BI Desktop, leading to longer execution times that exceed the timeout threshold. - **Connection Pooling:** Issues with connection pooling between Power BI Embedded and Azure Analysis Services could lead to inefficient use of resources, causing queries to take longer and timeout. - **Azure Analysis Services Configuration:** The configuration of Azure Analysis Services, such as the tier or the query mode (e.g., DirectQuery), might not be optimized for the workload generated by Power BI Embedded, leading to performance issues. ###","#### Immediate Actions to Mitigate Impact:
+1. **Notify Affected Users:** Inform external customers about the issue and provide an estimated time for resolution.
+2. **Temporary Workaround:** If possible, provide a temporary workaround, such as accessing reports through Power BI Desktop or an alternative analytics platform.
+
+#### Diagnostic Commands/Queries:
+1. **Check Power BI Embedded Logs:** Review the logs for Power BI Embedded to identify any error messages related to the timeouts.
+2. **Azure Analysis Services Metrics:** Monitor Azure Analysis Services metrics (e.g., query duration, memory usage) to understand the performance characteristics of the queries.
+3. **Network and Connection Monitoring:** Use Azure Monitor or similar tools to monitor network connectivity and latency between Power BI Embedded and Azure Analysis Services.
+
+#### Fix Implementation Steps:
+1. **Adjust Timeout Settings:** Increase the timeout settings for Power BI Embedded queries to a higher value (e.g., 2 minutes) to allow more time for queries to complete.
+2. **Optimize Queries:** Review and optimize the queries used in the embedded reports to reduce complexity and execution time. This might involve simplifying the queries, using more efficient data models, or leveraging query optimization techniques.
+3. **Azure Analysis Services Configuration:** Review and adjust the configuration of Azure Analysis Services to better match the workload. This could involve increasing the service tier for more processing power or adjusting the query mode for better performance.
+4. **Connection Pooling Optimization:** Ensure that connection pooling is properly configured between Power BI Embedded and Azure Analysis Services to efficiently manage connections and reduce the overhead of establishing new connections.
+
+#### Verification Steps:
+1. **Test Embedded Reports:** After implementing the fixes, test the embedded reports to verify that they no longer timeout.
+2. **Monitor Performance:** Continuously monitor the performance of Power BI Embedded and Azure Analysis Services to ensure that the fixes have not introduced any new issues.
+3. **User Feedback:** Collect feedback from external customers to confirm that the issue has been resolved and that the reports are now accessible without timeouts.
+
+#### Preventive Measures:
+1. **Regular Performance Monitoring:** Regularly monitor the performance of Power BI Embedded and Azure Analysis Services to identify potential issues before they affect users.
+2. **Query Optimization:** Regularly review and optimize queries used in embedded reports to ensure they are efficient and do not cause performance issues.
+3. **Scaling and Configuration Reviews:** Periodically review the configuration of Azure Analysis Services and Power BI Embedded to ensure they are appropriately scaled for the current workload and future growth.",10-Sep

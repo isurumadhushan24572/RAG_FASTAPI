@@ -1,0 +1,202 @@
+[
+  {
+    "title": "Data Factory connection to SQL database returns error 2108 for missing vault credential",
+    "description": "Our ETL pipelines in Azure Data Factory cannot connect to SQL Database anymore. Getting error code 2108 which means the vault secret reference doesn't exist. This issue appeared right after we updated our credentials.",
+    "category": "Azure Data Factory",
+    "severity": "High",
+    "application": "ADF - Linked Service: Azure SQL (prod)",
+    "affected_users": "All nightly ingestion pipelines depending on Azure SQL connection",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Self-hosted integration runtime went down and copy tasks are timing out",
+    "description": "Our data transfer operations to the on-premises database keep timing out. The integration runtime appears to be offline ever since we applied Windows updates to the server.",
+    "category": "Azure Data Factory",
+    "severity": "Critical",
+    "application": "ADF - Self-Hosted IR",
+    "affected_users": "Finance and sales data loads from on-prem",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Getting authorization errors when writing to storage through private network",
+    "description": "We're experiencing 403 access denied errors when our data pipelines try to save files to the data lake using the private connection. The storage has network restrictions enabled and we haven't properly configured the managed network.",
+    "category": "Azure Data Factory",
+    "severity": "High",
+    "application": "ADF - Managed VNET",
+    "affected_users": "Data lake ingestion workloads",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Mapping data transformation crashes with memory exhaustion on big table joins",
+    "description": "Our transformation pipeline keeps crashing with out-of-memory errors when we try to merge two huge tables with 200 million records each. We don't have enough compute resources allocated.",
+    "category": "Azure Data Factory",
+    "severity": "High",
+    "application": "ADF - Mapping Data Flow",
+    "affected_users": "Data modelers and monthly reconciliations",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Unable to establish JDBC connection from Databricks to SQL Server",
+    "description": "Our Spark cluster can't connect to Azure SQL Database using JDBC. We're seeing TCP connection errors with code 11001, especially when there's high traffic on the system.",
+    "category": "Databricks",
+    "severity": "High",
+    "application": "Databricks Workspace - JDBC",
+    "affected_users": "ETL jobs and ad-hoc analysts",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Access denied errors on mounted storage paths after credential refresh",
+    "description": "Our notebooks are getting 403 forbidden errors when accessing data lake through DBFS mount points. The service principal credentials were just renewed and now the mount isn't working.",
+    "category": "Databricks",
+    "severity": "High",
+    "application": "Databricks - DBFS Mounts",
+    "affected_users": "All teams reading from /mnt/raw",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Spark job terminated due to uneven data distribution across partitions",
+    "description": "Our transformation job keeps failing with stage abortion errors and disk spillage. One partition is holding more than half of all the data causing performance bottlenecks.",
+    "category": "Databricks",
+    "severity": "High",
+    "application": "Databricks - Spark Jobs",
+    "affected_users": "Downstream reporting feeds",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Delta table cleanup deleted active files causing query failures",
+    "description": "After running vacuum with a short 8-hour retention, our streaming queries started throwing file not found errors. The cleanup removed files that were still being read by lagging streams.",
+    "category": "Databricks",
+    "severity": "Critical",
+    "application": "Databricks - Delta Lake",
+    "affected_users": "Streaming + BI queries on bronze layer",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Cannot import internal library after upgrading cluster version",
+    "description": "Following the cluster runtime update, our notebooks can't find our custom company package anymore. The wheel file wasn't installed through the initialization scripts.",
+    "category": "Notebooks",
+    "severity": "Medium",
+    "application": "Analytics Notebooks",
+    "affected_users": "Data scientists working on forecasting",
+    "environment": "Staging",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Identity pass-through authentication not working due to wrong token scope",
+    "description": "The authentication token being generated has the incorrect resource audience, preventing our notebook from accessing the data lake using the ABFS protocol with credential passthrough.",
+    "category": "Notebooks",
+    "severity": "High",
+    "application": "Secure Data Access Notebooks",
+    "affected_users": "Analysts using pass-through authentication",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Machine learning model training runs out of memory on driver node",
+    "description": "Training XGBoost on a dataset with 50 million rows crashes the driver with an out-of-memory exception. We're running everything on a single machine without distribution.",
+    "category": "Notebooks",
+    "severity": "High",
+    "application": "ML Training Notebooks",
+    "affected_users": "Data science team",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Workflow HTTP request getting authentication error after token expired",
+    "description": "Our automated workflow calling the internal REST API is receiving 401 unauthorized responses. We're using an old connection reference and haven't set up managed identity authentication.",
+    "category": "Logic Apps",
+    "severity": "High",
+    "application": "Logic App - OrderProcessor",
+    "affected_users": "Order processing automation",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "SharePoint updates failing with too many requests throttling error",
+    "description": "When we try to update multiple list items in SharePoint, we're hitting rate limits and getting 'Too Many Requests' errors that cause the workflow to fail.",
+    "category": "Logic Apps",
+    "severity": "Medium",
+    "application": "Logic App - SharePointSync",
+    "affected_users": "PMO document workflows",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Webhook receiving large files rejected with payload size error",
+    "description": "Our HTTP trigger is rejecting incoming requests with 413 error when partners send documents larger than the default limit. We need to accept files up to 25MB.",
+    "category": "Logic Apps",
+    "severity": "Medium",
+    "application": "Logic App - Intake",
+    "affected_users": "External partners submitting documents",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "SQL connection pool depleted causing API timeouts",
+    "description": "Our application is returning 500 errors with SQL timeout exceptions. The connection pool hit its maximum limit when multiple batch jobs ran simultaneously.",
+    "category": "Database",
+    "severity": "Critical",
+    "application": "Azure SQL - AppDB",
+    "affected_users": "External API consumers",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Query performance degraded due to absent database indexes",
+    "description": "Search endpoint response times increased significantly. Queries are doing full table scans because we're missing a compound index on tenant identifier and creation timestamp fields.",
+    "category": "Database",
+    "severity": "High",
+    "application": "Azure SQL - Search",
+    "affected_users": "Customers using search feature",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Read replica falling behind primary causing data inconsistency",
+    "description": "Our MySQL replica isn't keeping up during heavy bulk inserts. Users are seeing outdated information because read-after-write consistency is broken in their timeline views.",
+    "category": "Database",
+    "severity": "Medium",
+    "application": "MySQL - SocialFeed",
+    "affected_users": "Mobile app users",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Cosmos container hitting throughput limits on popular partition",
+    "description": "One of our partitions with a specific user ID is experiencing extremely high traffic. We're getting 429 throttling errors that are blocking writes to the events collection.",
+    "category": "Database",
+    "severity": "High",
+    "application": "Cosmos DB - Events",
+    "affected_users": "Event ingest pipeline",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Cloud storage staging area failing with expired access signature",
+    "description": "Our COPY command from the external staging location is failing because the shared access signature token is no longer valid. We rotated the secret but the stage definition still uses the old one.",
+    "category": "Snowflake",
+    "severity": "High",
+    "application": "Snowflake - External Stage (ADLS)",
+    "affected_users": "Ingestion jobs for bronze layer",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Auto-ingestion pipe not loading new files from storage",
+    "description": "The snowpipe appears healthy in the console but isn't processing any new files. The storage event notification system was turned off after a recent policy update.",
+    "category": "Snowflake",
+    "severity": "High",
+    "application": "Snowflake - Snowpipe",
+    "affected_users": "Near-real-time ingestion consumers",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  }
+]

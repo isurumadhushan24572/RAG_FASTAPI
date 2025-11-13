@@ -77,8 +77,8 @@ tmp/
 
 # ========== DATA FILES (optional) ==========
 # Uncomment if you don't want to track data files:
-*.json
-*.csv
-data/
+# *.json
+# *.csv
+# data/
 
-Json_Files/
+# Json_Files/
