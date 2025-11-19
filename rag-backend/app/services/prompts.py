@@ -1,104 +1,25 @@
-from typing import Dict, List # for type annotations
-from pathlib import Path # for file path management
+"""
+LangChain-based prompt management for ticket resolution.
+Loads prompt templates from separate files for easy modification.
+"""
+from typing import Dict, List
+from pathlib import Path
+from langchain_core.prompts import ChatPromptTemplate
 
 
 # Base directory for prompt templates
 PROMPT_TEMPLATES_DIR = Path(__file__).parent / "prompt_templates"
 
 
-def load_prompt_template(template_name: str) -> str:
-    """Load a prompt template from a text file name."""
-
-    template_path = PROMPT_TEMPLATES_DIR / f"{template_name}.txt"
+# Load a prompt template from a text file
+def load_template_file(filename: str) -> str:
+    """Load a prompt template from a text file."""
+    template_path = PROMPT_TEMPLATES_DIR / filename
     try:
         with open(template_path, 'r', encoding='utf-8') as f:
             return f.read()
     except FileNotFoundError:
         raise FileNotFoundError(f"Prompt template not found: {template_path}")
-
-
-class PromptTemplates:
-    """Collection of prompt templates for different AI operations."""
-    
-    # Load prompt templates from files
-    TICKET_RESOLUTION_TEMPLATE = load_prompt_template("ticket_resolution")
-    SIMILAR_TICKETS_CONTEXT_TEMPLATE = load_prompt_template("similar_tickets_context")
-    NO_SIMILAR_TICKETS_TEMPLATE = load_prompt_template("no_similar_tickets")
-    SIMILAR_TICKET_ITEM_TEMPLATE = load_prompt_template("similar_ticket_item")
-    CUSTOM_PROMPT_TEMPLATE = load_prompt_template("custom_prompt")
-    
-    @staticmethod
-    def build_similar_tickets_context(similar_tickets: List[Dict]) -> str:
-        # Similar tickets context builder
-
-        if not similar_tickets:
-            return PromptTemplates.NO_SIMILAR_TICKETS_TEMPLATE
-        
-        # Build list of similar tickets
-        similar_tickets_list = ""
-        for i, ticket in enumerate(similar_tickets, 1):
-            similarity_percent = f"{ticket['similarity_score'] * 100:.1f}"
-            similar_tickets_list += PromptTemplates.SIMILAR_TICKET_ITEM_TEMPLATE.format(
-                number=i,
-                similarity_percent=similarity_percent,
-                title=ticket['title'],
-                description=ticket['description'],
-                solution=ticket['solution'],
-                reasoning=ticket['reasoning']
-            )
-        
-        # Use the context template
-        context = PromptTemplates.SIMILAR_TICKETS_CONTEXT_TEMPLATE.format(
-            similar_tickets_list=similar_tickets_list
-        )
-        
-        return context
-    
-    @staticmethod
-    def ticket_resolution_prompt(ticket_data: Dict, context: str) -> str:
-        """Generate the ticket resolution prompt."""
-
-        return PromptTemplates.TICKET_RESOLUTION_TEMPLATE.format(
-            title=ticket_data['title'],
-            description=ticket_data['description'],
-            category=ticket_data['category'],
-            severity=ticket_data['severity'],
-            application=ticket_data['application'],
-            environment=ticket_data['environment'],
-            affected_users=ticket_data['affected_users'],
-            context=context
-        )
-    
-    @staticmethod
-    def custom_prompt(
-        system_role: str,
-        ticket_data: Dict,
-        context: str,
-        additional_instructions: str = ""
-    ) -> str:
-        """
-        Generate a custom prompt with flexible parameters.
-        
-        Args:
-            system_role: Role description for the AI (e.g., "expert DevOps engineer")
-            ticket_data: Current ticket information
-            context: Similar tickets context
-            additional_instructions: Any additional instructions for the AI
-            
-        Returns:
-            Custom prompt string
-        """
-        return PromptTemplates.CUSTOM_PROMPT_TEMPLATE.format(
-            system_role=system_role,
-            title=ticket_data.get('title', 'N/A'),
-            description=ticket_data.get('description', 'N/A'),
-            category=ticket_data.get('category', 'N/A'),
-            severity=ticket_data.get('severity', 'N/A'),
-            application=ticket_data.get('application', 'N/A'),
-            environment=ticket_data.get('environment', 'N/A'),
-            context=context,
-            additional_instructions=additional_instructions
-        )
 
 
 class PromptConfig:
@@ -108,29 +29,123 @@ class PromptConfig:
     ROOT_CAUSE_MARKER = "ROOT CAUSE:"
     RESOLUTION_MARKER = "RESOLUTION:"
     
-    # Default system roles
-    DEFAULT_SYSTEM_ROLE = "an expert cloud application support engineer"
-    DEVOPS_ROLE = "an expert DevOps engineer specializing in cloud infrastructure"
-    DATABASE_ROLE = "an expert database administrator with cloud expertise"
-    SECURITY_ROLE = "an expert security engineer for cloud applications"
-    
     # Similarity thresholds
     MIN_SIMILARITY_THRESHOLD = 0.85
     HIGH_CONFIDENCE_THRESHOLD = 0.95
     
     # Context limits
     MAX_SIMILAR_TICKETS = 5
-    MAX_CONTEXT_LENGTH = 4000  # characters
+    MAX_CONTEXT_LENGTH = 10000  # characters
 
 
-# Singleton instance for easy access
-prompt_templates = PromptTemplates()
-prompt_config = PromptConfig()
-
-
-# Export commonly used functions
-def get_ticket_resolution_prompt(ticket_data: Dict, similar_tickets: List[Dict]) -> str:
-    """Generate the ticket resolution prompt with similar tickets context."""
+class PromptTemplateManager:
+    """Manages LangChain prompt templates loaded from separate files."""
     
-    context = prompt_templates.build_similar_tickets_context(similar_tickets)
-    return prompt_templates.ticket_resolution_prompt(ticket_data, context)
+    def __init__(self):
+        # Load message templates from files
+        self.system_message = load_template_file("system_message.txt")
+        self.human_message_template = load_template_file("human_message.txt")
+        self.ai_example_message = load_template_file("ai_example_message.txt")
+        
+        # Load helper templates
+        self.similar_ticket_item_template = load_template_file("similar_ticket_item.txt")
+        self.no_similar_tickets_template = load_template_file("no_similar_tickets.txt")
+    
+    def build_similar_tickets_context(self, similar_tickets: List[Dict]) -> str:
+        """Build the similar tickets context section."""
+        if not similar_tickets:
+            return self.no_similar_tickets_template
+        
+        # Build list of similar tickets
+        tickets_text = ""
+        for i, ticket in enumerate(similar_tickets, 1):
+            similarity_percent = f"{ticket['similarity_score'] * 100:.1f}"
+            tickets_text += self.similar_ticket_item_template.format(
+                number=i,
+                similarity_percent=similarity_percent,
+                title=ticket['title'],
+                description=ticket['description'],
+                solution=ticket['solution'],
+                reasoning=ticket['reasoning']
+            )
+        
+        return f"### Similar Past Cloud Application Issues (85%+ match confidence):\n\n{tickets_text}"
+    
+    def create_chat_prompt(self, include_example: bool = True) -> ChatPromptTemplate:
+        """
+        Create a LangChain ChatPromptTemplate with system, human, and optional AI example messages.
+        
+        Args:
+            include_example: Whether to include the AI example message (few-shot learning)
+        
+        Returns:
+            ChatPromptTemplate ready for use with LLM
+        """
+        messages = [
+            ("system", self.system_message),
+        ]
+        
+        # Add few-shot example if requested
+        if include_example:
+            # Use a simplified human message for the example
+            example_human = """### Current Incident Details:
+**Title:** Database Connection Timeout
+**Description:** Users experiencing timeout errors when trying to access the application. Error logs show 'Connection pool exhausted' messages.
+**Category:** Database
+**Severity:** Critical
+**Application:** user-service
+**Environment:** production
+**Affected Users:** 500+
+
+### Similar Past Cloud Application Issues (85%+ match confidence):
+Past tickets showed similar connection pool issues during high load periods.
+
+### Your Task:
+Provide root cause analysis and resolution."""
+            
+            messages.extend([
+                ("human", example_human),
+                ("ai", self.ai_example_message)
+            ])
+        
+        # Add the actual human message template with variables
+        messages.append(("human", self.human_message_template))
+        
+        return ChatPromptTemplate.from_messages(messages)
+
+
+# Global instances
+prompt_config = PromptConfig()
+prompt_manager = PromptTemplateManager()
+
+
+def get_ticket_resolution_prompt(ticket_data: Dict, similar_tickets: List[Dict], include_example: bool = True) -> ChatPromptTemplate:
+    """
+    Create a LangChain ChatPromptTemplate for ticket resolution.
+    
+    Args:
+        ticket_data: Current ticket information
+        similar_tickets: List of similar past tickets
+        include_example: Whether to include few-shot example (default: True)
+    
+    Returns:
+        ChatPromptTemplate with all variables populated except the final invocation
+    """
+    # Build similar tickets context
+    similar_tickets_context = prompt_manager.build_similar_tickets_context(similar_tickets)
+    
+    # Create the chat prompt
+    chat_prompt = prompt_manager.create_chat_prompt(include_example=include_example)
+    
+    # Return the template with partial variables filled
+    # The actual invocation will happen in the AI service
+    return chat_prompt, {
+        "title": ticket_data.get('title', 'N/A'),
+        "description": ticket_data.get('description', 'N/A'),
+        "category": ticket_data.get('category', 'N/A'),
+        "severity": ticket_data.get('severity', 'N/A'),
+        "application": ticket_data.get('application', 'N/A'),
+        "environment": ticket_data.get('environment', 'N/A'),
+        "affected_users": ticket_data.get('affected_users', 'N/A'),
+        "similar_tickets_context": similar_tickets_context
+    }

@@ -1,45 +1,62 @@
 """
-AI service for generating ticket solutions using LLM.
-Handles root cause analysis and solution generation.
+AI service for generating ticket solutions using LLM with LangChain.
+Handles root cause analysis and solution generation using structured prompts.
 """
 from typing import Dict, List, Tuple  
 from langchain_groq import ChatGroq 
+from langchain_core.output_parsers import StrOutputParser
 from app.core.config import settings
 from app.services.prompts import get_ticket_resolution_prompt, prompt_config
 
 
 class AIService:
-   
-    # Service for AI-powered ticket solution generation.
+    """Service for AI-powered ticket solution generation using LangChain."""
+    
+    def __init__(self):
+        """Initialize the AI service with LangChain components."""
+        self.llm = None
+        self.output_parser = StrOutputParser()
+    
+    def _get_llm(self) -> ChatGroq:
+        """Get or create the LLM instance."""
+        if self.llm is None:
+            if not settings.GROQ_API_KEY:
+                raise ValueError("GROQ_API_KEY not found in environment variables")
+            
+            self.llm = ChatGroq(
+                model=settings.GROQ_MODEL,
+                temperature=settings.GROQ_TEMPERATURE,
+                api_key=settings.GROQ_API_KEY
+            )
+        return self.llm
     
     def generate_solution(self, ticket_data: Dict, similar_tickets: List[Dict]) -> Tuple[str, str]:
-        """         
+        """
+        Generate solution using LangChain ChatPromptTemplate with structured messages.
+        
         Args:
             ticket_data: Dictionary containing ticket information (User Input Tickets)
-            similar_tickets: List of similar tickets from vector DB (Retrieave from Cosine-Similarity)
+            similar_tickets: List of similar tickets from vector DB (Retrieved from Cosine-Similarity)
             
         Returns:
             Tuple of (reasoning, solution)
         """
         try:
-            # Check if API key is available
-            if not settings.GROQ_API_KEY:
-                return "Unable to generate root cause analysis. GROQ_API_KEY not found in environment variables."
+            # Get LLM instance
+            llm = self._get_llm()
             
-            
-            # Initialize Groq LLM
-            llm = ChatGroq(
-                model=settings.GROQ_MODEL,
-                temperature=settings.GROQ_TEMPERATURE,
-                api_key=settings.GROQ_API_KEY
+            # Get LangChain ChatPromptTemplate and variables
+            chat_prompt, prompt_variables = get_ticket_resolution_prompt(
+                ticket_data, 
+                similar_tickets,
+                include_example=True  # Include few-shot example
             )
             
-            # Create prompt using centralized prompt template
-            prompt = get_ticket_resolution_prompt(ticket_data, similar_tickets)
+            # Create LangChain chain: Prompt -> LLM -> Output Parser
+            chain = chat_prompt | llm | self.output_parser
             
-            # Get response from Groq LLM
-            response = llm.invoke(prompt)
-            response_text = response.content.strip()
+            # Execute the chain
+            response_text = chain.invoke(prompt_variables)
             
             # Parse reasoning and solution
             reasoning, solution = self._parse_response(response_text)

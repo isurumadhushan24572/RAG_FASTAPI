@@ -27,5 +27,8 @@ requests
 sentence-transformers
 
 # ===================== LANGCHAIN INTEGRATION =====================
-# LangChain library for building applications with LLMs
-langchain_groq
+# LangChain core components for prompt templates and chains
+langchain-core
+langchain-groq
+# LangChain community utilities
+langchain

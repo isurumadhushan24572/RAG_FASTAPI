@@ -2,8 +2,8 @@
 # collection management endpoints.
 # Handles CRUD operations for Weaviate collections.
 
-from fastapi import APIRouter, HTTPException, status
-import weaviate.classes as wvc
+from fastapi import APIRouter, HTTPException, status # FastAPI router and exceptions
+import weaviate.classes as wvc # Weaviate vector classes 
 from weaviate.classes.config import Property, DataType
 from app.db import get_weaviate_client
 from app.core.config import settings

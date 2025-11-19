@@ -2,9 +2,9 @@
 Configuration module for application settings.
 Handles environment variables and application constants.
 """
-import os
-from typing import Optional
-from dotenv import load_dotenv
+import os # `os` module to access environment variables
+from typing import Optional # For optional type hinting
+from dotenv import load_dotenv # To load environment variables from .env file
 
 # Load environment variables from .env file
 load_dotenv()
@@ -37,7 +37,7 @@ class Settings:
     
     # Search Configuration
     SIMILARITY_THRESHOLD: float = 0.85
-    DEFAULT_SEARCH_LIMIT: int = 3
+    DEFAULT_SEARCH_LIMIT: int = 5
 
 
 # Create a singleton instance

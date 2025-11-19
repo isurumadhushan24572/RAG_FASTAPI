@@ -2,8 +2,8 @@
 Health check endpoints.
 Provides API and database health status.
 """
-from fastapi import APIRouter, HTTPException, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, status # FastAPI router and exceptions
+from fastapi.responses import JSONResponse # JSON response handling
 from app.db import get_weaviate_client
 
 router = APIRouter(tags=["Health Check"])

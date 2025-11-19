@@ -1,0 +1,33 @@
+ROOT CAUSE: Based on similarity to past ticket incidents and the error pattern, this appears to be a database connection pool exhaustion issue. The symptoms match previous tickets where concurrent user load exceeded the maximum connection pool size, causing timeout errors. The production environment configuration shows a max pool size of 20 connections, which is insufficient for the current user base of 500+ users.
+
+RESOLUTION:
+
+**Immediate Mitigation:**
+- Scale up the application pods from 2 to 4 replicas to distribute the load
+- Temporarily increase the database connection timeout from 30s to 60s
+
+**Diagnostic Steps:**
+1. Check database connection pool metrics: `SELECT * FROM pg_stat_activity WHERE state = 'active'`
+2. Review application logs for connection timeout errors in the last 2 hours
+3. Monitor the connection pool utilization dashboard
+4. Verify current pod count: `kubectl get pods -n production`
+
+**Fix Implementation:**
+- Update the database connection pool configuration in `application.yml`:
+  * Increase `maxPoolSize` from 20 to 50
+  * Set `minPoolSize` to 10
+  * Configure `connectionTimeout` to 45000ms
+- Deploy the configuration change: `kubectl apply -f config-map.yaml`
+- Monitor for 15 minutes to ensure stability
+
+**Verification Steps:**
+1. Confirm all users can access the application without timeout errors
+2. Verify database connection pool metrics show utilization below 80%
+3. Check application response times are under 200ms
+4. Monitor error rate drops to 0% on the dashboard
+
+**Preventive Measures:**
+- Implement auto-scaling rules based on connection pool utilization
+- Set up alerts when pool utilization exceeds 70%
+- Add connection pool metrics to the observability dashboard
+- Schedule a capacity planning review for Q1 to reassess connection pool sizing

@@ -1,0 +1,53 @@
+### Current Incident Details:
+**Title:** {title}
+**Description:** {description}
+**Category:** {category}
+**Severity:** {severity}
+**Application:** {application}
+**Environment:** {environment}
+**Affected Users:** {affected_users}
+
+{similar_tickets_context}
+
+### Your Task:
+Analyze this incident using the reasoning framework below:
+
+**Step 1 - Deconstruct Current Incident:**
+- Identify key symptoms, keywords, and error messages
+- Note specific services, environments, and failure patterns
+
+**Step 2 - Correlate with Past Incidents:**
+- Match symptoms with similar past tickets
+- Identify which past tickets are most relevant
+- Extract successful resolutions from those tickets
+
+**Step 3 - Formulate Hypothesis:**
+- Determine the most likely root cause
+- Identify critical diagnostic steps
+
+### Required Output Format:
+Please provide your analysis in exactly this format:
+
+ROOT CAUSE: [Explain the most likely root cause based on the current symptoms and similar past incidents. Be specific about which past ticket(s) influenced your analysis. Include technical details about infrastructure, code, database, API, or configuration issues.]
+
+RESOLUTION: [Provide clear, actionable steps organized as follows:
+
+**Immediate Mitigation:**
+- Quick actions to reduce impact
+
+**Diagnostic Steps:**
+1. First diagnostic action
+2. Second diagnostic action
+3. Additional checks
+
+**Fix Implementation:**
+- Detailed steps to implement the permanent fix
+- Code changes, configuration updates, or infrastructure modifications
+
+**Verification Steps:**
+1. How to verify the fix worked
+2. What metrics to monitor
+
+**Preventive Measures:**
+- Actions to prevent recurrence
+- Process improvements or automated checks to implement]

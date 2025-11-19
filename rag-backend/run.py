@@ -3,7 +3,7 @@ Application entry point.
 Run this file to start the FastAPI server.
 """
 
-import uvicorn
+import uvicorn # Uvicorn is an ASGI server for running FastAPI apps
 from app.core.config import settings
 
 if __name__ == "__main__":
