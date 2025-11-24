@@ -1,0 +1,72 @@
+# ===================== WEB FRAMEWORK =====================
+# FastAPI framework for building REST APIs
+fastapi==0.115.0
+
+# Uvicorn - ASGI server to run FastAPI application
+uvicorn[standard]==0.32.0
+
+# Pydantic - Data validation using Python type hints
+pydantic==2.9.2
+
+# Pydantic Settings - For managing application settings
+pydantic_settings==2.6.1
+
+# ===================== WEAVIATE VECTOR DATABASE =====================
+# Weaviate Python client v4 for vector database operations
+weaviate-client==4.9.3
+
+# ===================== ENVIRONMENT CONFIGURATION =====================
+# Python-dotenv for loading environment variables from .env file
+python-dotenv==1.0.1
+
+# ===================== HTTP REQUESTS =====================
+# Requests library for making HTTP requests
+requests==2.32.3
+
+# ===================== LOCAL EMBEDDINGS =====================
+# Sentence Transformers for local text embeddings
+sentence-transformers==3.3.1
+
+# ===================== LANGCHAIN CORE =====================
+# LangChain core components - compatible versions
+langchain==0.1.20
+langchain-core==0.1.52
+langchain-community==0.0.38
+langchain-text-splitters==0.0.1
+
+# ===================== LLM PROVIDERS =====================
+# Groq LLM integration
+langchain-groq==0.1.3
+
+# ===================== AGENT TOOLS =====================
+# Web search tools for agents
+tavily-python==0.3.3
+duckduckgo-search==5.3.0
+
+# ===================== DOCUMENT PROCESSING =====================
+# PDF processing
+pypdf==5.1.0
+pymupdf==1.25.1
+
+# Text file processing
+python-docx==1.1.2
+
+# Markdown processing
+markdown==3.7
+
+# ===================== UTILITIES =====================
+# HTTP client for async operations
+httpx==0.28.1
+
+# JSON handling
+orjson==3.10.12
+
+# Date/time utilities
+python-dateutil==2.9.0
+
+# ===================== LOGGING & MONITORING =====================
+# Structured logging
+loguru==0.7.3
+
+# LangSmith for tracing (optional)
+langsmith==0.1.129

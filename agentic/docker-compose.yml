@@ -1,0 +1,69 @@
+# =====================================================================
+# Agentic RAG - Docker Compose Configuration
+# Services: Weaviate Vector Database ONLY
+# Backend runs locally on the host machine
+# =====================================================================
+
+version: '3.8'
+
+services:
+  # ========== WEAVIATE VECTOR DATABASE ==========
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    container_name: agentic_weaviate_db
+    restart: unless-stopped
+    
+    ports:
+      - "${WEAVIATE_PORT:-8080}:8080"
+      - "${WEAVIATE_GRPC_PORT:-50051}:50051"
+    
+    environment:
+      # Query settings
+      QUERY_DEFAULTS_LIMIT: 25
+      
+      # Authentication (disabled for local development)
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      
+      # Data persistence
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      
+      # Vectorizer (disabled - using local embeddings)
+      DEFAULT_VECTORIZER_MODULE: 'none'
+      
+      # Cluster configuration
+      CLUSTER_HOSTNAME: 'node1'
+      
+      # gRPC settings
+      ENABLE_GRPC: 'true'
+      GRPC_PORT: '50051'
+      
+      # Performance settings
+      LIMIT_RESOURCES: 'false'
+      
+      # Disable telemetry
+      DISABLE_TELEMETRY: 'true'
+    
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/v1/.well-known/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    
+    networks:
+      - agentic_network
+
+# ========== VOLUMES ==========
+volumes:
+  weaviate_data:
+    driver: local
+    name: agentic_weaviate_data
+
+# ========== NETWORKS ==========
+networks:
+  agentic_network:
+    driver: bridge
+    name: agentic_network

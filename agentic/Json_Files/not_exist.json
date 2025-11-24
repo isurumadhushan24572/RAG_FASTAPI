@@ -1,0 +1,202 @@
+[
+  {
+    "title": "Azure Synapse dedicated SQL pool experiencing automatic pause during active workload",
+    "description": "Our dedicated SQL pool keeps pausing automatically even though we have active queries running. This is disrupting our real-time analytics dashboards and causing connection failures for BI tools.",
+    "category": "Azure Synapse",
+    "severity": "Critical",
+    "application": "Synapse - Dedicated SQL Pool",
+    "affected_users": "Analytics team and dashboard consumers",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Stream Analytics job failing with deserialization errors on IoT Hub input",
+    "description": "Our Stream Analytics job is throwing deserialization exceptions when processing messages from IoT Hub. The JSON messages appear malformed but we can't identify which devices are sending bad data.",
+    "category": "Stream Analytics",
+    "severity": "High",
+    "application": "ASA - IoT Processing",
+    "affected_users": "Real-time monitoring systems",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Power BI embedded reports timing out when connecting to Analysis Services",
+    "description": "Embedded Power BI reports in our application are timing out when querying Azure Analysis Services. Direct queries from Power BI Desktop work fine, but embedded scenarios fail after 30 seconds.",
+    "category": "Power BI",
+    "severity": "High",
+    "application": "Power BI Embedded",
+    "affected_users": "External customers viewing embedded analytics",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Purview data scan failing on Oracle database with TNS listener error",
+    "description": "Purview automated scan cannot connect to our on-premises Oracle database. Getting TNS:listener error even though the Self-hosted Integration Runtime is online and firewall rules are configured.",
+    "category": "Azure Purview",
+    "severity": "Medium",
+    "application": "Purview - Data Catalog",
+    "affected_users": "Data governance team",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure DevOps pipeline deployment to Azure Functions slot swap rollback failing",
+    "description": "Our CI/CD pipeline deploys Azure Functions using slot swap. When deployment validation fails and we attempt automatic rollback, the swap back operation hangs and never completes, leaving us in an inconsistent state.",
+    "category": "Azure DevOps",
+    "severity": "High",
+    "application": "Azure DevOps Pipelines",
+    "affected_users": "DevOps and development teams",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Event Grid subscription missing events during high throughput bursts",
+    "description": "Our Event Grid subscription is dropping events during traffic spikes. We're sending approximately 5000 events per second, but subscribers only receive about 60% of them. No error messages in monitoring.",
+    "category": "Event Grid",
+    "severity": "Critical",
+    "application": "Event Grid - Custom Topics",
+    "affected_users": "Event-driven microservices",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure API Management policy transformation breaking SOAP envelope structure",
+    "description": "We're using APIM to transform SOAP requests before forwarding to backend. The XML transformation policy is corrupting the SOAP envelope structure, causing the backend service to reject requests with invalid namespace errors.",
+    "category": "API Management",
+    "severity": "High",
+    "application": "APIM - SOAP Proxy",
+    "affected_users": "Legacy integration clients",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Container Instances restart loop due to secret volume mount failure",
+    "description": "Our ACI containers enter a restart loop when we try to mount secrets from Azure Key Vault as volumes. The containers start successfully without secret volumes but fail immediately when secrets are mounted.",
+    "category": "Azure Container Instances",
+    "severity": "Medium",
+    "application": "ACI - Batch Jobs",
+    "affected_users": "Scheduled batch processing",
+    "environment": "Staging",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Kubernetes Service pod autoscaler not scaling down after load decreases",
+    "description": "HPA successfully scales up pods during high traffic but refuses to scale down when load drops. Pods remain at maximum count indefinitely, wasting resources. Scaling down manually works fine.",
+    "category": "Azure Kubernetes Service",
+    "severity": "Medium",
+    "application": "AKS - Microservices Cluster",
+    "affected_users": "Platform operations team",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Backup for SAP HANA database failing with pre-script validation errors",
+    "description": "Automated backups for our SAP HANA database on Azure VM are failing. The pre-backup script validation returns errors about insufficient privileges even though the backup user has correct grants.",
+    "category": "Azure Backup",
+    "severity": "Critical",
+    "application": "Azure Backup - SAP HANA",
+    "affected_users": "SAP operations team",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Machine Learning pipeline dataset version conflict in production environment",
+    "description": "Our ML pipeline is failing because different steps are trying to use incompatible versions of the same dataset. The dataset was updated in the workspace but one legacy step still references the old schema.",
+    "category": "Azure Machine Learning",
+    "severity": "High",
+    "application": "Azure ML - Training Pipelines",
+    "affected_users": "Data science team",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Front Door custom domain SSL certificate renewal failing validation",
+    "description": "Automatic SSL certificate renewal for our custom domain in Azure Front Door is failing. The domain validation challenge cannot complete because DNS propagation times out. Manual renewal also fails.",
+    "category": "Azure Front Door",
+    "severity": "High",
+    "application": "Front Door - CDN",
+    "affected_users": "Public website visitors",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Service Bus dead-letter queue growing indefinitely without processing",
+    "description": "Messages are moving to dead-letter queue but our DLQ processor cannot consume them. Getting MessageLockLost exceptions even though we're renewing locks. DLQ message count has reached 500,000.",
+    "category": "Service Bus",
+    "severity": "High",
+    "application": "Service Bus - Order Queue",
+    "affected_users": "Order processing system",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Monitor workbook query performance degraded after Log Analytics workspace merge",
+    "description": "After consolidating multiple Log Analytics workspaces into one, our Azure Monitor workbooks are taking 10x longer to render. Queries that took 2 seconds now time out after 60 seconds.",
+    "category": "Azure Monitor",
+    "severity": "Medium",
+    "application": "Azure Monitor - Workbooks",
+    "affected_users": "Operations and monitoring teams",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Cognitive Search indexer failing on PDF documents with specific encoding",
+    "description": "Our search indexer processes most PDFs successfully but fails on documents with certain encodings. Error indicates unsupported character encoding even though the PDFs open fine in standard readers.",
+    "category": "Cognitive Search",
+    "severity": "Medium",
+    "application": "Cognitive Search - Document Index",
+    "affected_users": "Document search users",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Application Gateway health probe marking healthy backends as unhealthy",
+    "description": "Application Gateway intermittently marks our backend servers as unhealthy even though they're responding correctly to health probes. This causes unnecessary traffic redistribution and connection resets.",
+    "category": "Application Gateway",
+    "severity": "High",
+    "application": "AppGW - Load Balancer",
+    "affected_users": "Web application users",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Redis Cache experiencing slow performance after scaling operation",
+    "description": "After scaling our Redis Cache from Basic to Standard tier, we're seeing 5x increase in latency for GET operations. Cache hit ratio is normal but response times went from 2ms to 10ms average.",
+    "category": "Redis Cache",
+    "severity": "High",
+    "application": "Redis - Session Store",
+    "affected_users": "All web application users",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure SignalR Service connection drops during regional failover test",
+    "description": "During our disaster recovery test, Azure SignalR Service connections dropped and didn't automatically reconnect when failing over to secondary region. Clients had to manually refresh to reconnect.",
+    "category": "SignalR Service",
+    "severity": "Medium",
+    "application": "SignalR - Real-time Messaging",
+    "affected_users": "Chat and notification users",
+    "environment": "Staging",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Time Series Insights query returning incomplete data for historical range",
+    "description": "Queries for data older than 90 days return partial results or empty datasets. Recent data queries work fine. Warm store shows correct record counts but queries don't return all data.",
+    "category": "Time Series Insights",
+    "severity": "Medium",
+    "application": "TSI - IoT Analytics",
+    "affected_users": "Analytics and reporting teams",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  },
+  {
+    "title": "Azure Automation runbook webhook authentication failing after certificate rollover",
+    "description": "External systems calling our Automation Account webhooks are getting 401 authentication errors. This started immediately after we rotated the webhook certificate. New webhook URLs work but we can't update all external callers quickly.",
+    "category": "Azure Automation",
+    "severity": "Critical",
+    "application": "Automation - Scheduled Tasks",
+    "affected_users": "External partner integrations",
+    "environment": "Production",
+    "collection_name": "SupportTickets"
+  }
+]
