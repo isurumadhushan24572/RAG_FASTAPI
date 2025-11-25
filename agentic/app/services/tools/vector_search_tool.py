@@ -20,7 +20,7 @@ class VectorSearchTool(BaseTool):
         "Input should be a search query describing what information you're looking for."
     )
     
-    max_results: int = Field(default=5, description="Maximum number of results to return")
+    max_results: int = Field(default=settings.DEFAULT_SEARCH_LIMIT, description="Maximum number of results to return")
     collection_name: Optional[str] = Field(default=None, description="Collection name to search in")
     
     def _run(

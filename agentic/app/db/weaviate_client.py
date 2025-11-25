@@ -65,7 +65,7 @@ class WeaviateManager:
             return
         
         try:
-            # Check if SupportTickets collection exists
+            # Check if SupportTickets collection (default) exists
             collection_name = settings.DOCUMENTS_COLLECTION_NAME
             collection_exists = self.client.collections.exists(collection_name)
             

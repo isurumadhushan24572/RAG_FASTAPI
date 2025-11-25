@@ -13,23 +13,14 @@ router = APIRouter(prefix="/agent", tags=["Agent"])
 
 @router.post("/query", response_model=AITicketResponse)
 async def query_agent(ticket: TicketSubmissionModel):
-    """
-    Agentic RAG endpoint - Query the agent with ticket submission format.
-    
-    This endpoint uses the same input format as rag-backend's submit-user-input,
-    but leverages the agentic RAG system with multi-tool reasoning.
-    
+    """Agentic RAG query endpoint.
+
     Workflow:
     1. Search vector DB for similar past incidents
     2. Use agentic RAG with web search and vector search tools
     3. Generate AI solution with agent reasoning and tool usage
-    4. Return reasoning, solution, and similar tickets found
+    4. Return reasoning, and solution
     
-    Args:
-        ticket: TicketSubmissionModel with incident details
-        
-    Returns:
-        AITicketResponse: Generated ticket ID, status, AI reasoning, solution, and similar tickets
     """
     weaviate_client = get_weaviate_client()
     
@@ -58,9 +49,6 @@ async def query_agent(ticket: TicketSubmissionModel):
 Title: {ticket.title}
 Description: {ticket.description}
 Category: {ticket.category}
-Severity: {ticket.severity}
-Application: {ticket.application}
-Environment: {ticket.environment}
 Affected Users: {ticket.affected_users}
 
 INSTRUCTIONS:
@@ -161,7 +149,7 @@ Be specific to Azure, cloud applications, microservices, APIs, and DevOps practi
             status_value = "Resolved"
             message = f"AI-generated solution using agentic RAG. Found {len(similar_tickets)} similar ticket(s)."
         elif has_web_sources:
-            status_value = "Resolved"
+            status_value = "Open"
             message = "AI-generated solution using web search and agent reasoning."
         else:
             status_value = "Open"
@@ -222,5 +210,5 @@ async def get_agent_info():
             "Vector search for similar historical tickets"
         ],
         "endpoint": "/agent/query",
-        "response_format": "AITicketResponse (same as rag-backend)"
+        "response_format": "AITicketResponse"
     }

@@ -17,28 +17,28 @@ class Settings:
     API_TITLE: str = "Agentic RAG API"
     API_DESCRIPTION: str = "Advanced Agentic RAG system with web search and vector database"
     API_VERSION: str = "1.0.0"
-    API_HOST: str = os.getenv("API_HOST", "0.0.0.0")
-    API_PORT: int = int(os.getenv("API_PORT", "8000"))
+    API_HOST: str = os.getenv("API_HOST")
+    API_PORT: int = int(os.getenv("API_PORT"))
     
     # Weaviate Configuration
-    WEAVIATE_HOST: str = os.getenv("WEAVIATE_HOST", "localhost")
-    WEAVIATE_PORT: int = int(os.getenv("WEAVIATE_PORT", "8080"))
-    WEAVIATE_GRPC_PORT: int = int(os.getenv("WEAVIATE_GRPC_PORT", "50051"))
+    WEAVIATE_HOST: str = os.getenv("WEAVIATE_HOST")
+    WEAVIATE_PORT: int = int(os.getenv("WEAVIATE_PORT"))
+    WEAVIATE_GRPC_PORT: int = int(os.getenv("WEAVIATE_GRPC_PORT"))
     
     # Collection Configuration
-    DOCUMENTS_COLLECTION_NAME: str = os.getenv("DOCUMENTS_COLLECTION_NAME", "Documents")
+    DOCUMENTS_COLLECTION_NAME: str = os.getenv("DOCUMENTS_COLLECTION_NAME")
     
     # Embedding Model Configuration
-    EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "all-mpnet-base-v2")
+    EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL")
     
     # LLM Configuration
     GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")
-    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
-    GROQ_TEMPERATURE: float = float(os.getenv("GROQ_TEMPERATURE", "0.1"))
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL")
+    GROQ_TEMPERATURE: float = float(os.getenv("GROQ_TEMPERATURE"))
     
     # Agent Configuration
-    AGENT_MAX_ITERATIONS: int = int(os.getenv("AGENT_MAX_ITERATIONS", "15"))
-    AGENT_MAX_EXECUTION_TIME: int = int(os.getenv("AGENT_MAX_EXECUTION_TIME", "120"))
+    AGENT_MAX_ITERATIONS: int = int(os.getenv("AGENT_MAX_ITERATIONS"))
+    AGENT_MAX_EXECUTION_TIME: int = int(os.getenv("AGENT_MAX_EXECUTION_TIME"))
     
     # Web Search Configuration
     TAVILY_API_KEY: Optional[str] = os.getenv("TAVILY_API_KEY")
@@ -46,25 +46,24 @@ class Settings:
     GOOGLE_CSE_ID: Optional[str] = os.getenv("GOOGLE_CSE_ID")
     
     # Search Configuration
-    SIMILARITY_THRESHOLD: float = float(os.getenv("SIMILARITY_THRESHOLD", "0.85"))
-    DEFAULT_SEARCH_LIMIT: int = int(os.getenv("MAX_RETRIEVAL_DOCUMENTS", "5"))
+    SIMILARITY_THRESHOLD: float = float(os.getenv("SIMILARITY_THRESHOLD"))
+    DEFAULT_SEARCH_LIMIT: int = int(os.getenv("MAX_RETRIEVAL_DOCUMENTS"))
     
     # CORS Configuration
     CORS_ORIGINS: List[str] = os.getenv(
-        "CORS_ORIGINS", 
-        "http://localhost:3000,http://localhost:5173"
+        "CORS_ORIGINS"
     ).split(",")
     
     # LangSmith Configuration (Optional)
-    LANGSMITH_TRACING: bool = os.getenv("LANGSMITH_TRACING", "false").lower() == "true"
+    LANGSMITH_TRACING: bool = os.getenv("LANGSMITH_TRACING").lower() == "true"
     LANGSMITH_ENDPOINT: Optional[str] = os.getenv("LANGSMITH_ENDPOINT")
     LANGSMITH_API_KEY: Optional[str] = os.getenv("LANGSMITH_API_KEY")
-    LANGSMITH_PROJECT: str = os.getenv("LANGSMITH_PROJECT", "Agentic-RAG")
+    LANGSMITH_PROJECT: str = os.getenv("LANGSMITH_PROJECT")
     
     # Application Settings
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
-    DEBUG: bool = os.getenv("DEBUG", "true").lower() == "true"
-    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT")
+    DEBUG: bool = os.getenv("DEBUG").lower() == "true"
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL")
 
 
 # Create a singleton instance

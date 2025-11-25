@@ -33,7 +33,7 @@ class WebSearchTool(BaseTool):
         "Input should be a clear search query."
     )
     
-    max_results: int = Field(default=5, description="Maximum number of search results")
+    max_results: int = Field(default=settings.DEFAULT_SEARCH_LIMIT, description="Maximum number of search results")
     search_engine: str = Field(default="tavily", description="Search engine to use (tavily or duckduckgo)")
     
     def _run(
@@ -132,7 +132,7 @@ class WebSearchTool(BaseTool):
 
 
 def create_web_search_tool(
-    max_results: int = 5,
+    max_results: int = settings.DEFAULT_SEARCH_LIMIT,
     search_engine: str = "tavily"
 ) -> WebSearchTool:
     """
