@@ -56,7 +56,7 @@ class AgenticRAGService:
             print(f"✅ Vector search tool enabled (collection: {target_collection}, threshold: {settings.SIMILARITY_THRESHOLD}, max_results: {settings.DEFAULT_SEARCH_LIMIT})")
         
         if use_web_search:
-            web_tool = create_web_search_tool(max_results=5)
+            web_tool = create_web_search_tool(max_results=settings.DEFAULT_SEARCH_LIMIT, search_engine="tavily")
             self.tools.append(web_tool)
             print("✅ Web search tool enabled")
         
@@ -138,6 +138,21 @@ class AgenticRAGService:
             # Extract information
             answer = result.get("output", "No answer generated")
             intermediate_steps = result.get("intermediate_steps", [])
+            
+            # IMPORTANT: Capture the full agent reasoning from intermediate steps
+            # The agent prints the structured response during execution but only returns "Final Answer"
+            # We need to reconstruct the full output from the agent's thoughts
+            full_agent_output = ""
+            
+            for step in intermediate_steps:
+                action, observation = step
+                # The action log contains the agent's thoughts and structured output
+                if hasattr(action, 'log'):
+                    full_agent_output += action.log + "\n"
+            
+            # If we captured the full output with ROOT CAUSE and RESOLUTION, use that instead
+            if "ROOT CAUSE:" in full_agent_output and "RESOLUTION:" in full_agent_output:
+                answer = full_agent_output
             
             # Process agent steps
             agent_steps = []

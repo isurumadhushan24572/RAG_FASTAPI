@@ -103,37 +103,113 @@ Be specific to Azure, cloud applications, microservices, APIs, and DevOps practi
         sources = result.get("sources", [])
         agent_steps = result.get("agent_steps", [])
         
-        # Parse agent output to extract reasoning and solution
+        # Extract information from agent response
+        answer = result.get("answer", "")
+        sources = result.get("sources", [])
+        agent_steps = result.get("agent_steps", [])
+        
+        # Parse agent output to extract reasoning (ROOT CAUSE) and solution (RESOLUTION)
         reasoning = ""
         solution = ""
         
-        # Try to extract structured format
-        if "<reasoning>" in answer and "</reasoning>" in answer:
-            # Extract reasoning block
-            reasoning_start = answer.find("<reasoning>")
-            reasoning_end = answer.find("</reasoning>")
-            reasoning = answer[reasoning_start:reasoning_end + 12].strip()
-            
-            # Extract everything after reasoning as the solution
-            solution_start = answer.find("ROOT CAUSE:")
-            if solution_start > 0:
-                solution = answer[solution_start:].strip()
+        # Store original for fallback
+        original_answer = answer
+        
+        # Step 1: Remove "Final Answer:" and everything after "Thought:" that follows it
+        if "Final Answer:" in answer:
+            final_answer_pos = answer.find("Final Answer:")
+            # Check if there's useful content before "Final Answer:"
+            before_final = answer[:final_answer_pos].strip()
+            if "ROOT CAUSE:" in before_final and "RESOLUTION:" in before_final:
+                # Use content before Final Answer
+                answer = before_final
             else:
-                solution = answer[reasoning_end + 12:].strip()
+                # Final Answer might contain a summary, ignore it and use what's before
+                answer = before_final if before_final else answer
+        
+        # Step 2: Handle multiple "Thought:" occurrences
+        # The structured content usually appears after a "Thought:" that analyzes the results
+        if "Thought:" in answer:
+            parts = answer.split("Thought:")
+            # Find the part that has both ROOT CAUSE and RESOLUTION
+            found_structured = False
+            for i, part in enumerate(parts):
+                if "ROOT CAUSE:" in part and "RESOLUTION:" in part:
+                    answer = part.strip()
+                    found_structured = True
+                    break
+            
+            # If no part has both, check if ROOT CAUSE and RESOLUTION are in different parts
+            if not found_structured:
+                combined = ""
+                for i, part in enumerate(parts):
+                    if "ROOT CAUSE:" in part or "RESOLUTION:" in part:
+                        combined += part + " "
+                if combined and ("ROOT CAUSE:" in combined and "RESOLUTION:" in combined):
+                    answer = combined.strip()
+                elif len(parts) > 1:
+                    # Use the last meaningful part
+                    answer = parts[-1].strip()
+        
+        # Step 3: Remove the <reasoning> block as it's separate from ROOT CAUSE
+        if "<reasoning>" in answer and "</reasoning>" in answer:
+            reasoning_block_start = answer.find("<reasoning>")
+            reasoning_block_end = answer.find("</reasoning>") + len("</reasoning>")
+            answer = answer[:reasoning_block_start] + answer[reasoning_block_end:]
+            answer = answer.strip()
+        
+        # Step 4: Extract ROOT CAUSE and RESOLUTION
+        if "ROOT CAUSE:" in answer and "RESOLUTION:" in answer:
+            root_cause_pos = answer.find("ROOT CAUSE:")
+            resolution_pos = answer.find("RESOLUTION:")
+            
+            # reasoning = ROOT CAUSE content (between ROOT CAUSE: and RESOLUTION:)
+            reasoning = answer[root_cause_pos:resolution_pos].strip()
+            
+            # solution = RESOLUTION content (everything after RESOLUTION:)
+            solution = answer[resolution_pos:].strip()
+            
+            # Clean up any trailing "Thought:" or "Final Answer:" in solution
+            if "Thought:" in solution:
+                solution = solution[:solution.find("Thought:")].strip()
+            if "Final Answer:" in solution:
+                solution = solution[:solution.find("Final Answer:")].strip()
+            
         elif "ROOT CAUSE:" in answer:
-            # If no reasoning block but has ROOT CAUSE format
-            parts = answer.split("ROOT CAUSE:", 1)
-            reasoning = "Agent performed multi-step analysis using vector search and web search tools."
-            solution = "ROOT CAUSE:" + parts[1] if len(parts) > 1 else answer
+            root_cause_pos = answer.find("ROOT CAUSE:")
+            reasoning = answer[root_cause_pos:].strip()
+            if "Thought:" in reasoning:
+                reasoning = reasoning[:reasoning.find("Thought:")].strip()
+            solution = "RESOLUTION:\n\nNo detailed resolution steps provided by the agent."
+            
         elif "RESOLUTION:" in answer:
-            # If has RESOLUTION but no ROOT CAUSE
-            parts = answer.split("RESOLUTION:", 1)
-            reasoning = parts[0].strip() if parts[0] else "Agent analysis completed"
-            solution = "RESOLUTION:" + parts[1] if len(parts) > 1 else answer
+            resolution_pos = answer.find("RESOLUTION:")
+            reasoning = "ROOT CAUSE:\n\nThe agent did not provide a structured root cause analysis."
+            solution = answer[resolution_pos:].strip()
+            if "Thought:" in solution:
+                solution = solution[:solution.find("Thought:")].strip()
+            
         else:
-            # Fallback: use full answer
-            reasoning = f"Agent analyzed the ticket using {len(agent_steps)} steps and {len(sources)} sources."
-            solution = answer
+            # Fallback: Check if original_answer has the structured format
+            if "ROOT CAUSE:" in original_answer and "RESOLUTION:" in original_answer:
+                # Try parsing the original answer
+                root_cause_pos = original_answer.find("ROOT CAUSE:")
+                resolution_pos = original_answer.find("RESOLUTION:")
+                
+                reasoning = original_answer[root_cause_pos:resolution_pos].strip()
+                solution = original_answer[resolution_pos:].strip()
+                
+                # Clean up
+                if "Thought:" in reasoning:
+                    reasoning = reasoning[:reasoning.find("Thought:")].strip()
+                if "Thought:" in solution:
+                    solution = solution[:solution.find("Thought:")].strip()
+                if "Final Answer:" in solution:
+                    solution = solution[:solution.find("Final Answer:")].strip()
+            else:
+                # True fallback - create generic response
+                reasoning = f"ROOT CAUSE:\n\nBased on analysis using {len(agent_steps)} steps and {len(sources)} sources, the agent identified potential causes but did not provide structured root cause analysis."
+                solution = f"RESOLUTION:\n\nThe agent provided analysis but did not format the resolution in the expected structure. Please review the agent's findings and formulate appropriate resolution steps."
         
         # Extract similar tickets from vector search sources
         similar_tickets = []
