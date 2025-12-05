@@ -35,6 +35,10 @@ class Settings:
     GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")
     GROQ_MODEL: str = os.getenv("GROQ_MODEL")
     GROQ_TEMPERATURE: float = float(os.getenv("GROQ_TEMPERATURE"))
+
+    GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
+    GEMINI_TEMPERATURE: float = float(os.getenv("GEMINI_TEMPERATURE", "0.3"))   
     
     # Agent Configuration
     AGENT_MAX_ITERATIONS: int = int(os.getenv("AGENT_MAX_ITERATIONS"))
@@ -42,8 +46,11 @@ class Settings:
     
     # Web Search Configuration
     TAVILY_API_KEY: Optional[str] = os.getenv("TAVILY_API_KEY")
-    GOOGLE_API_KEY: Optional[str] = os.getenv("GOOGLE_API_KEY")
-    GOOGLE_CSE_ID: Optional[str] = os.getenv("GOOGLE_CSE_ID")
+    
+    # JWT Authentication Configuration
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY")
+    JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+    JWT_ACCESS_TOKEN_EXPIRE_HOURS: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_HOURS", "24"))
     
     # Search Configuration
     SIMILARITY_THRESHOLD: float = float(os.getenv("SIMILARITY_THRESHOLD"))

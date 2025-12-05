@@ -58,9 +58,13 @@ class VectorSearchTool(BaseTool):
             # Format results
             formatted_results = []
             for i, doc in enumerate(results, 1):
+                # Include ticket_id prominently in the output
+                ticket_id = doc.get('ticket_id', doc.get('document_id', 'N/A'))
                 formatted_results.append(
-                    f"Document {i}:\n"
+                    f"Document {i} (ticket_id: {ticket_id}):\n"
                     f"Title: {doc['title']}\n"
+                    f"Category: {doc.get('category', 'N/A')}\n"
+                    f"Severity: {doc.get('severity', 'N/A')}\n"
                     f"Similarity: {doc['similarity_score']:.2%}\n"
                     f"Content: {doc['content'][:500]}...\n"
                     f"Source: {doc.get('source', 'unknown')}\n"

@@ -283,12 +283,12 @@ class DocumentService:
             logger.error(f"❌ Error getting document: {str(e)}")
             return None
     
-    def list_documents(self, limit: int = 100) -> List[Dict[str, Any]]:
+    def list_documents(self, collection_name: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         List all documents.
         
         Args:
-            limit: Maximum number of documents to return
+            collection_name: Optional collection name (uses default if not provided)
             
         Returns:
             List of documents
@@ -298,10 +298,18 @@ class DocumentService:
             if client is None:
                 raise RuntimeError("Weaviate client not connected")
             
-            collection = client.collections.get(self.collection_name)
+            # Use provided collection_name or fall back to default
+            target_collection = collection_name or self.collection_name
+            
+            # Check if collection exists
+            if not self.collection_exists(client, target_collection):
+                logger.warning(f"Collection '{target_collection}' does not exist")
+                return []
+            
+            collection = client.collections.get(target_collection)
             
             # Fetch all documents
-            response = collection.query.fetch_objects(limit=limit)
+            response = collection.query.fetch_objects()
             
             # Process results
             documents = []
@@ -323,7 +331,7 @@ class DocumentService:
                     "created_at": obj.properties.get("created_at"),
                 })
             
-            print(f"📚 Retrieved {len(documents)} documents")
+            print(f"📚 Retrieved {len(documents)} documents from '{target_collection}'")
             return documents
         
         except Exception as e:

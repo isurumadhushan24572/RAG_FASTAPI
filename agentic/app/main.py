@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.db import weaviate_manager
 from app.services import embedding_service
-from app.api import health, documents, agent, tickets
+from app.api import health, documents, agent, tickets, auth
 
 
 @asynccontextmanager
@@ -70,6 +70,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router)
 app.include_router(health.router)
 app.include_router(tickets.router)
 app.include_router(documents.router)

@@ -65,6 +65,7 @@ class WeaviateManager:
             return
         
         try:
+            # ========== SUPPORT TICKETS COLLECTION ==========
             # Check if SupportTickets collection (default) exists
             collection_name = settings.DOCUMENTS_COLLECTION_NAME
             collection_exists = self.client.collections.exists(collection_name)
@@ -96,6 +97,35 @@ class WeaviateManager:
                 )
                 print(f"✅ Collection '{collection_name}' created successfully with ticket schema")
                 print(f"ℹ️  Using local embeddings (sentence-transformers) for vectorization")
+            
+            # ========== USERS COLLECTION ==========
+            users_collection_name = "Users"
+            users_collection_exists = self.client.collections.exists(users_collection_name)
+            
+            if users_collection_exists:
+                print(f"✅ Collection '{users_collection_name}' already exists")
+            else:
+                print(f"📝 Creating '{users_collection_name}' collection...")
+                
+                # Create Users collection for authentication
+                self.client.collections.create(
+                    name=users_collection_name,
+                    description="User accounts and authentication data",
+                    vectorizer_config=wvc.config.Configure.Vectorizer.none(),  # No vectorization needed
+                    properties=[
+                        Property(name="user_id", data_type=DataType.TEXT, description="Unique user identifier (UUID)"),
+                        Property(name="email", data_type=DataType.TEXT, description="User email address (unique)"),
+                        Property(name="password_hash", data_type=DataType.TEXT, description="Bcrypt hashed password"),
+                        Property(name="is_verified", data_type=DataType.BOOL, description="Email verification status"),
+                        Property(name="verification_code", data_type=DataType.TEXT, description="Email verification code"),
+                        Property(name="verification_code_expires", data_type=DataType.TEXT, description="Verification code expiration timestamp"),
+                        Property(name="reset_code", data_type=DataType.TEXT, description="Password reset code"),
+                        Property(name="reset_code_expires", data_type=DataType.TEXT, description="Reset code expiration timestamp"),
+                        Property(name="created_at", data_type=DataType.TEXT, description="Account creation timestamp"),
+                        Property(name="last_login", data_type=DataType.TEXT, description="Last login timestamp"),
+                    ]
+                )
+                print(f"✅ Collection '{users_collection_name}' created successfully")
                 
         except Exception as e:
             print(f"⚠️ Error handling collection: {str(e)}")

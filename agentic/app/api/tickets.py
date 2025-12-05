@@ -4,6 +4,7 @@ Handles ticket CRUD operations and AI-powered ticket resolution with agentic RAG
 """
 from fastapi import APIRouter, HTTPException, status
 from typing import Optional, List
+from collections import Counter
 import weaviate.classes as wvc
 from datetime import datetime
 from app.db import get_weaviate_client
@@ -67,7 +68,7 @@ async def upload_ticket(ticket: TicketModel, collection_name: Optional[str] = No
         }
         
         # Generate embedding from ticket content
-        text_to_embed = f"{ticket.title} {ticket.description} {ticket.solution}"
+        text_to_embed = f"{ticket.title} {ticket.description} {ticket.solution} {ticket.reasoning}"
         embedding = embedding_service.generate_embedding(text_to_embed)
         
         # Insert ticket into Weaviate
@@ -209,10 +210,33 @@ Application: {ticket.application}
 Environment: {ticket.environment}
 Affected Users: {ticket.affected_users}
 
-Please provide:
-1. Root cause analysis (reasoning)
-2. Step-by-step solution
-3. Reference any similar past tickets found in the database"""
+INSTRUCTIONS:
+1. FIRST, use the 'vector_search' tool ONCE to find similar past tickets.
+2. SECOND, use the 'web_search' tool ONCE to find external documentation.
+3. After using both tools, you MUST provide your Final Answer in this EXACT format:
+
+ROOT CAUSE: [Your detailed root cause analysis, referencing similar past tickets if found]
+
+RESOLUTION:
+
+**Immediate Mitigation:**
+[Quick actions to restore service]
+
+**Diagnostic Steps:**
+1. [Specific checks and queries]
+2. [Log files and monitoring]
+3. [Configuration verification]
+
+**Fix Implementation:**
+[Step-by-step resolution with specific commands/actions]
+
+**Verification:**
+[How to confirm the fix worked]
+
+**Preventive Measures:**
+[Actions to prevent recurrence]
+
+IMPORTANT: After providing the ROOT CAUSE and RESOLUTION, you MUST end with "Final Answer: [repeat the ROOT CAUSE and RESOLUTION]" to complete your response."""
         
         # Execute agentic RAG query
         result = agent_service.query(
@@ -223,15 +247,71 @@ Please provide:
         # Extract reasoning and solution from agent response
         answer = result.get("answer", "")
         sources = result.get("sources", [])
+        agent_steps = result.get("agent_steps", [])
+        
+        # The agent's full output is in intermediate steps, not just in "answer"
+        # Try to reconstruct from agent steps if answer is incomplete
+        full_output = answer
+        
+        # Check if we need to extract from intermediate steps
+        if "ROOT CAUSE:" not in answer or "RESOLUTION:" not in answer:
+            # Look through agent steps for the thought containing ROOT CAUSE
+            for step in agent_steps:
+                observation = step.get("observation", "")
+                if "ROOT CAUSE:" in observation and "RESOLUTION:" in observation:
+                    full_output = observation
+                    break
+        
+        # Clean up agent artifacts
+        # Remove "Final Answer:" prefix if present
+        if "Final Answer:" in full_output:
+            full_output = full_output.split("Final Answer:", 1)[-1].strip()
+        
+        # Remove trailing "Thought:" sections (agent reasoning artifacts)
+        if "\nThought:" in full_output:
+            full_output = full_output.split("\nThought:")[0].strip()
+        
+        # Also check for the case where ROOT CAUSE appears before "Observation:"
+        if "Observation:" in full_output and "ROOT CAUSE:" in full_output:
+            # The ROOT CAUSE might be in a Thought before Observation
+            parts = full_output.split("Observation:")
+            for part in parts:
+                if "ROOT CAUSE:" in part and "RESOLUTION:" in part:
+                    full_output = part.strip()
+                    break
         
         # Parse agent output to extract reasoning and solution
-        if "Root Cause" in answer or "Reasoning" in answer:
-            parts = answer.split("Solution:", 1)
-            reasoning = parts[0].replace("Root Cause:", "").replace("Reasoning:", "").strip()
-            solution = parts[1].strip() if len(parts) > 1 else answer
+        reasoning = ""
+        solution = ""
+        
+        if "ROOT CAUSE:" in full_output and "RESOLUTION:" in full_output:
+            # Split by RESOLUTION marker
+            parts = full_output.split("RESOLUTION:", 1)
+            
+            # Extract ROOT CAUSE section (remove the marker itself)
+            reasoning_section = parts[0].strip()
+            if "ROOT CAUSE:" in reasoning_section:
+                reasoning = reasoning_section.split("ROOT CAUSE:", 1)[1].strip()
+            else:
+                reasoning = reasoning_section
+            
+            # Extract RESOLUTION section (include the word RESOLUTION for display)
+            solution = "RESOLUTION:\n\n" + parts[1].strip()
+            
+        elif "ROOT CAUSE:" in full_output:
+            # Only ROOT CAUSE found
+            reasoning = full_output.split("ROOT CAUSE:", 1)[1].strip()
+            solution = "RESOLUTION:\n\nNo detailed resolution steps provided by the agent."
+            
+        elif "RESOLUTION:" in full_output:
+            # Only RESOLUTION found
+            reasoning = "The agent did not provide a structured root cause analysis."
+            solution = "RESOLUTION:\n\n" + full_output.split("RESOLUTION:", 1)[1].strip()
+            
         else:
-            reasoning = "AI agent analysis in progress"
-            solution = answer
+            # Fallback: No structured format detected
+            reasoning = "Agent analysis in progress. Full response below."
+            solution = full_output if full_output else answer
         
         # Determine status based on similarity and agent confidence
         similar_tickets = [s for s in sources if s.get("type") == "vector_search"]
@@ -259,13 +339,13 @@ Please provide:
         similar_tickets_response = [
             {
                 "ticket_id": st.get("ticket_id", "N/A"),
-                "title": st.get("title", ""),
+                "title": st.get("title", "Untitled"),
                 "similarity_score": st.get("similarity_score", 0),
-                "similarity_percent": f"{st.get('similarity_score', 0) * 100:.1f}%",
-                "category": st.get("metadata", {}).get("category", ""),
-                "severity": st.get("metadata", {}).get("severity", "")
+                "similarity_percent": f"{st.get('similarity_score', 0) * 100:.1f}",
+                "category": st.get("category", "N/A"),
+                "severity": st.get("severity", "N/A")
             }
-            for st in similar_tickets
+            for st in similar_tickets if st.get("type") == "vector_search"
         ]
         
         return AITicketResponse(
@@ -275,6 +355,7 @@ Please provide:
             reasoning=reasoning,
             solution=solution,
             similar_tickets=similar_tickets_response,
+            llm_provider=result.get("llm_provider", "Unknown"),
             message=f"{message} Note: Ticket not saved to database."
         )
         
@@ -284,6 +365,65 @@ Please provide:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error processing ticket submission: {str(e)}"
+        )
+
+
+@router.get("/stats")
+async def get_ticket_stats(collection_name: Optional[str] = None):
+    """
+    Get statistics for tickets (severity, status, environment counts).
+    """
+    weaviate_client = get_weaviate_client()
+    
+    if weaviate_client is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Weaviate vector database is not connected."
+        )
+    
+    target_collection = collection_name or settings.DOCUMENTS_COLLECTION_NAME
+    
+    try:
+        if not weaviate_client.collections.exists(target_collection):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Collection '{target_collection}' does not exist"
+            )
+        
+        tickets_collection = weaviate_client.collections.get(target_collection)
+        
+        # Fetch all objects to aggregate in Python (simple approach for small datasets)
+        # For large datasets, use Weaviate's aggregate.over_all(group_by=...) if available
+        response = tickets_collection.query.fetch_objects(limit=10000)
+        
+        severity_counts = Counter()
+        status_counts = Counter()
+        environment_counts = Counter()
+        
+        for obj in response.objects:
+            props = obj.properties
+            if props.get("severity"):
+                severity_counts[props.get("severity")] += 1
+            if props.get("status"):
+                status_counts[props.get("status")] += 1
+            if props.get("environment"):
+                environment_counts[props.get("environment")] += 1
+                
+        return {
+            "success": True,
+            "collection": target_collection,
+            "total_tickets": len(response.objects),
+            "stats": {
+                "severity": dict(severity_counts),
+                "status": dict(status_counts),
+                "environment": dict(environment_counts)
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error calculating stats: {str(e)}"
         )
 
 

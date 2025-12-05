@@ -4,6 +4,7 @@ Orchestrates LLM agents with tools for intelligent question answering.
 """
 from typing import List, Dict, Any, Optional
 from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import initialize_agent, AgentType
 from langchain_core.messages import HumanMessage, AIMessage
 import time
@@ -16,21 +17,45 @@ class AgenticRAGService:
     
     def __init__(self):
         """Initialize the agentic RAG service."""
-        self.llm: Optional[ChatGroq] = None
+        self.llm = None
         self.agent = None
         self.tools = []
+        self.llm_provider = None  # Track which LLM provider is being used
     
-    def _get_llm(self) -> ChatGroq:
-        """Get or create the LLM instance."""
+    def _get_llm(self):
+        """Get or create the LLM instance with Groq as priority, Gemini as fallback."""
         if self.llm is None:
-            if not settings.GROQ_API_KEY:
-                raise ValueError("GROQ_API_KEY not found in environment variables")
+            # Try Groq first (Priority 1)
+            if settings.GROQ_API_KEY:
+                try:
+                    self.llm = ChatGroq(
+                        model=settings.GROQ_MODEL,
+                        temperature=settings.GROQ_TEMPERATURE,
+                        api_key=settings.GROQ_API_KEY,
+                    )
+                    self.llm_provider = "Groq"
+                    print(f"✅ Using Groq LLM: {settings.GROQ_MODEL}")
+                except Exception as e:
+                    print(f"⚠️ Failed to initialize Groq: {str(e)}")
+                    self.llm = None
             
-            self.llm = ChatGroq(
-                model=settings.GROQ_MODEL,
-                temperature=settings.GROQ_TEMPERATURE,
-                api_key=settings.GROQ_API_KEY,
-            )
+            # Fallback to Gemini if Groq is not available
+            if self.llm is None:
+                if settings.GEMINI_API_KEY:
+                    try:
+                        self.llm = ChatGoogleGenerativeAI(
+                            model=settings.GEMINI_MODEL,
+                            temperature=settings.GEMINI_TEMPERATURE,
+                            google_api_key=settings.GEMINI_API_KEY,
+                        )
+                        self.llm_provider = "Gemini"
+                        print(f"✅ Using Gemini LLM: {settings.GEMINI_MODEL}")
+                    except Exception as e:
+                        print(f"❌ Failed to initialize Gemini: {str(e)}")
+                        raise ValueError("No LLM provider available. Please configure GROQ_API_KEY or GEMINI_API_KEY")
+                else:
+                    raise ValueError("No LLM API key found. Please configure GROQ_API_KEY or GEMINI_API_KEY in environment variables")
+        
         return self.llm
     
     def _initialize_tools(
@@ -151,8 +176,14 @@ class AgenticRAGService:
                     full_agent_output += action.log + "\n"
             
             # If we captured the full output with ROOT CAUSE and RESOLUTION, use that instead
-            if "ROOT CAUSE:" in full_agent_output and "RESOLUTION:" in full_agent_output:
-                answer = full_agent_output
+            # Use case-insensitive check
+            full_output_upper = full_agent_output.upper()
+            if ("ROOT CAUSE" in full_output_upper or "REASONING" in full_output_upper) and \
+               ("SOLUTION" in full_output_upper or "RESOLUTION" in full_output_upper):
+                # Only use full output if it seems to contain the final answer structure
+                # Sometimes intermediate steps contain partial thoughts
+                if len(full_agent_output) > len(answer):
+                    answer = full_agent_output
             
             # Process agent steps
             agent_steps = []
@@ -168,17 +199,72 @@ class AgenticRAGService:
                 }
                 agent_steps.append(step_info)
                 
-                # Extract sources
+                # Extract sources with full details for vector search
                 if action.tool == "web_search":
                     sources.append({
                         "type": "web_search",
                         "query": action.tool_input,
                     })
                 elif action.tool == "vector_search":
-                    sources.append({
-                        "type": "vector_search",
-                        "query": action.tool_input,
-                    })
+                    # Parse the observation to extract ticket details
+                    # The observation contains formatted text like "Document 1:\nTitle: ...\n"
+                    try:
+                        # Extract ticket IDs, titles, and similarity from observation
+                        documents = observation.split("---")
+                        for doc_text in documents:
+                            if "Title:" in doc_text and "Similarity:" in doc_text:
+                                # Extract title
+                                title_start = doc_text.find("Title:") + 6
+                                title_end = doc_text.find("\n", title_start)
+                                title = doc_text[title_start:title_end].strip()
+                                
+                                # Extract similarity
+                                sim_start = doc_text.find("Similarity:") + 11
+                                sim_end = doc_text.find("\n", sim_start)
+                                similarity_str = doc_text[sim_start:sim_end].strip()
+                                
+                                # Convert percentage string to float (e.g., "92.34%" -> 0.9234)
+                                try:
+                                    similarity = float(similarity_str.replace("%", "")) / 100
+                                except:
+                                    similarity = 0.0
+                                
+                                # Try to extract ticket_id from content
+                                ticket_id = "N/A"
+                                if "ticket_id" in doc_text.lower():
+                                    # Look for patterns like "ticket_id: TKT-001"
+                                    import re
+                                    match = re.search(r'ticket[_\s]id[:\s]+([A-Z0-9-]+)', doc_text, re.IGNORECASE)
+                                    if match:
+                                        ticket_id = match.group(1)
+                                
+                                # Extract category and severity if present
+                                category = "N/A"
+                                severity = "N/A"
+                                if "category" in doc_text.lower():
+                                    cat_match = re.search(r'category[:\s]+([^\n]+)', doc_text, re.IGNORECASE)
+                                    if cat_match:
+                                        category = cat_match.group(1).strip()
+                                if "severity" in doc_text.lower():
+                                    sev_match = re.search(r'severity[:\s]+([^\n]+)', doc_text, re.IGNORECASE)
+                                    if sev_match:
+                                        severity = sev_match.group(1).strip()
+                                
+                                sources.append({
+                                    "type": "vector_search",
+                                    "query": action.tool_input,
+                                    "ticket_id": ticket_id,
+                                    "title": title,
+                                    "similarity_score": similarity,
+                                    "category": category,
+                                    "severity": severity
+                                })
+                    except Exception as e:
+                        # Fallback: just store basic info
+                        sources.append({
+                            "type": "vector_search",
+                            "query": action.tool_input,
+                        })
             
             execution_time = time.time() - start_time
             
@@ -191,6 +277,7 @@ class AgenticRAGService:
                 "agent_steps": agent_steps,
                 "execution_time": execution_time,
                 "tools_used": [tool.name for tool in self.tools],
+                "llm_provider": self.llm_provider,  # Include which LLM was used
             }
         
         except Exception as e:

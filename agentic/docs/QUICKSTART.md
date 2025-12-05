@@ -10,6 +10,7 @@ This agentic RAG system uses LangChain agents with multiple tools to intelligent
 ## Prerequisites
 
 - Python 3.10+
+- Node.js & npm
 - Docker Desktop
 - Groq API Key (get from https://console.groq.com)
 - Tavily API Key (optional, get from https://tavily.com)
@@ -30,42 +31,49 @@ docker ps
 
 You should see `agentic_weaviate_db` running on ports 8080 and 50051.
 
-### 2. Install Python Dependencies
+### 2. Backend Setup
 
+Install Python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-This will install:
-- FastAPI & Uvicorn
-- LangChain & Groq
-- Weaviate client
-- Sentence Transformers
-- Web search tools
+Configure Environment:
+1. Copy `.env.example` to `.env`
+2. Add your API keys (Groq, Tavily, etc.)
 
-### 3. Configure Environment
-
-The `.env` file is already configured with your API keys. To add Tavily for web search:
-
-1. Get Tavily API key from https://tavily.com
-2. Update `.env`:
-   ```
-   TAVILY_API_KEY=your_tavily_key_here
-   ```
-
-### 4. Run the Application
-
+Run the Backend:
 ```bash
 python run.py
 ```
+The backend will start on http://localhost:8000.
 
-The application will:
-- Load the embedding model
-- Connect to Weaviate
-- Initialize the Documents collection
-- Start FastAPI on http://localhost:8000
+### 3. Frontend Setup
 
-## API Usage
+Open a new terminal and navigate to the frontend directory:
+```bash
+cd frontend
+```
+
+Install Node dependencies:
+```bash
+npm install
+```
+
+Start the Frontend:
+```bash
+npm run dev
+```
+The frontend will start on http://localhost:5173.
+
+## Usage
+
+1. Open http://localhost:5173 in your browser.
+2. **Dashboard**: View real-time statistics of your support tickets.
+3. **New Ticket**: Click "New Ticket" to submit a query.
+4. **Result**: The AI will analyze your ticket and open the solution in a new tab.
+
+## API Usage (Backend Only)
 
 ### 1. Health Check
 
@@ -98,92 +106,6 @@ curl -X POST http://localhost:8000/agent/query \
   }'
 ```
 
-### 4. Search Documents
-
-```bash
-curl -X POST http://localhost:8000/documents/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "Python programming",
-    "limit": 5
-  }'
-```
-
-### 5. List All Documents
-
-```bash
-curl http://localhost:8000/documents/list
-```
-
-## API Documentation
-
-Interactive API documentation is available at:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-
-## How It Works
-
-### Agent Workflow
-
-1. **User Query**: Submit a question via `/agent/query`
-2. **Agent Planning**: The LangChain agent analyzes the query and decides which tools to use
-3. **Tool Execution**: 
-   - Uses `vector_search` to find relevant documents
-   - Uses `web_search` for current information
-   - Can use multiple tools in sequence
-4. **Answer Generation**: Synthesizes information from all sources
-5. **Response**: Returns answer with sources and agent steps
-
-### Document Storage
-
-- Documents are stored **complete** (not chunked)
-- Full content is embedded using sentence-transformers
-- Semantic search finds entire relevant documents
-- Preserves document context and structure
-
-### Agent Tools
-
-#### Vector Search Tool
-- Searches stored documents
-- Uses semantic similarity
-- Returns top relevant documents
-- Best for: Internal knowledge base
-
-#### Web Search Tool
-- Searches the internet
-- Uses Tavily or DuckDuckGo
-- Returns current information
-- Best for: Recent events, current data
-
-## Example Queries
-
-### Query with Vector Search Only
-```json
-{
-  "query": "Explain the content in our documents about machine learning",
-  "use_web_search": false,
-  "use_vector_search": true
-}
-```
-
-### Query with Web Search Only
-```json
-{
-  "query": "What are the latest AI developments in 2025?",
-  "use_web_search": true,
-  "use_vector_search": false
-}
-```
-
-### Query with Both Tools
-```json
-{
-  "query": "Compare our internal ML guidelines with current industry best practices",
-  "use_web_search": true,
-  "use_vector_search": true
-}
-```
-
 ## Troubleshooting
 
 ### Weaviate Connection Error
@@ -192,12 +114,8 @@ Interactive API documentation is available at:
 ```
 **Solution**: Start Weaviate with `docker-compose up -d`
 
-### Embedding Model Loading Slow
-First time loading the model downloads it from HuggingFace. Subsequent runs use cached model.
-
-### Web Search Not Working
-- Check if TAVILY_API_KEY is set in `.env`
-- Or use DuckDuckGo (no API key needed, but rate limited)
+### Frontend Connection Error
+If the frontend cannot connect to the backend, ensure the backend is running on port 8000 and CORS is configured correctly in `.env`.
 
 ### Agent Timeout
 Increase in `.env`:
@@ -207,14 +125,9 @@ AGENT_MAX_EXECUTION_TIME=180
 
 ## Stopping the Application
 
-1. Stop FastAPI: Press `Ctrl+C`
-2. Stop Weaviate: `docker-compose down`
+1. Stop Frontend: Press `Ctrl+C`
+2. Stop Backend: Press `Ctrl+C`
+3. Stop Weaviate: `docker-compose down`
 
 To remove all data: `docker-compose down -v`
 
-## Next Steps
-
-- Upload your documents via `/documents/upload`
-- Test agent queries via `/agent/query`
-- Monitor agent reasoning in the console logs
-- Check LangSmith for detailed traces (if enabled)
