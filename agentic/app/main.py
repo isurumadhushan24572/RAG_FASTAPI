@@ -7,7 +7,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.db import weaviate_manager
+from app.db.postgres_client import postgres_manager
 from app.services import embedding_service
+
+# Import routers directly to avoid circular imports
 from app.api import health, documents, agent, tickets, auth
 
 
@@ -26,16 +29,29 @@ async def lifespan(app: FastAPI):
     print("\n📦 Loading embedding model...")
     embedding_service.load_model()
     
+    # Connect to PostgreSQL
+    print("\n🔌 Connecting to PostgreSQL...")
+    postgres_connected = postgres_manager.connect()
+    
+    if postgres_connected:
+        # Create database tables
+        postgres_manager.create_tables()
+        print("✅ PostgreSQL ready (User data & Chat messages)")
+    else:
+        print("⚠️ Warning: PostgreSQL not connected")
+        print("💡 Start PostgreSQL: docker-compose up -d postgres")
+    
     # Connect to Weaviate
     print("\n🔌 Connecting to Weaviate...")
-    connected = weaviate_manager.connect()
+    weaviate_connected = weaviate_manager.connect()
     
-    if connected:
+    if weaviate_connected:
         # Initialize collections
         weaviate_manager.initialize_collections()
+        print("✅ Weaviate ready (Knowledge Base with embeddings)")
     else:
-        print("⚠️ Warning: Application started without Weaviate connection")
-        print("💡 Start Weaviate: docker-compose up -d")
+        print("⚠️ Warning: Weaviate not connected")
+        print("💡 Start Weaviate: docker-compose up -d weaviate")
     
     print("\n✅ Application startup complete!")
     print(f"📖 API Documentation: http://{settings.API_HOST}:{settings.API_PORT}/docs")
@@ -46,6 +62,7 @@ async def lifespan(app: FastAPI):
     
     # SHUTDOWN
     print("\n🛑 Shutting down Agentic RAG Application...")
+    postgres_manager.disconnect()
     weaviate_manager.disconnect()
     print("✅ Shutdown complete!")
 
@@ -107,7 +124,16 @@ async def status():
     return {
         "status": "running",
         "environment": settings.ENVIRONMENT,
-        "weaviate_connected": weaviate_manager.is_connected(),
+        "databases": {
+            "postgres": {
+                "connected": postgres_manager.is_connected(),
+                "purpose": "User authentication & Chat messages"
+            },
+            "weaviate": {
+                "connected": weaviate_manager.is_connected(),
+                "purpose": "Knowledge Base (Support tickets with embeddings)"
+            }
+        },
         "embedding_model_loaded": embedding_service.is_loaded(),
         "llm_model": settings.GROQ_MODEL,
         "agent_config": {

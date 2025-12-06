@@ -53,11 +53,21 @@ pymupdf==1.25.1
 # JWT token creation and verification
 python-jose[cryptography]==3.3.0
 
-# Password hashing
-passlib[bcrypt]==1.7.4
+# Password hashing - Argon2 (modern, secure, no length limits)
+argon2-cffi==23.1.0
 
 # File upload handling
 python-multipart==0.0.9
+
+# ===================== DATABASE - POSTGRESQL =====================
+# SQLAlchemy ORM for PostgreSQL
+sqlalchemy==2.0.23
+
+# PostgreSQL database adapter
+psycopg2-binary==2.9.9
+
+# Database migrations
+alembic==1.13.1
 
 # Text file processing
 python-docx==1.1.2
@@ -74,6 +84,9 @@ orjson==3.10.12
 
 # Date/time utilities
 python-dateutil==2.9.0
+
+# Enhanced Pydantic with email support
+pydantic[email]==2.9.2
 
 # ===================== LOGGING & MONITORING =====================
 # Structured logging

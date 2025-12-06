@@ -1,6 +1,7 @@
 """
 API module initialization.
 """
-from app.api import health, documents, agent
+# Import routers - avoid circular imports by not importing here
+# Import directly in main.py instead
 
-__all__ = ["health", "documents", "agent"]
+__all__ = ["agent", "auth", "documents", "tickets"]

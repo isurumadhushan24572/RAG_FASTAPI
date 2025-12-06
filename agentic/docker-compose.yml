@@ -1,12 +1,40 @@
 # =====================================================================
 # Agentic RAG - Docker Compose Configuration
-# Services: Weaviate Vector Database ONLY
+# Services: PostgreSQL (User/Chat data) + Weaviate (Vector KB)
 # Backend runs locally on the host machine
 # =====================================================================
 
 version: '3.8'
 
 services:
+  # ========== POSTGRESQL DATABASE ==========
+  postgres:
+    image: postgres:16-alpine
+    container_name: agentic_postgres_db
+    restart: unless-stopped
+    
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-agentic_rag}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-agentic_rag}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    
+    networks:
+      - agentic_network
+
   # ========== WEAVIATE VECTOR DATABASE ==========
   weaviate:
     image: semitechnologies/weaviate:latest
@@ -58,6 +86,9 @@ services:
 
 # ========== VOLUMES ==========
 volumes:
+  postgres_data:
+    driver: local
+    name: agentic_postgres_data
   weaviate_data:
     driver: local
     name: agentic_weaviate_data

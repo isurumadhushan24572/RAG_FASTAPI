@@ -25,6 +25,18 @@ class Settings:
     WEAVIATE_PORT: int = int(os.getenv("WEAVIATE_PORT"))
     WEAVIATE_GRPC_PORT: int = int(os.getenv("WEAVIATE_GRPC_PORT"))
     
+    # PostgreSQL Configuration
+    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST")
+    POSTGRES_PORT: int = int(os.getenv("POSTGRES_PORT"))
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB")
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD")
+    
+    @property
+    def DATABASE_URL(self) -> str:
+        """Construct PostgreSQL connection URL with psycopg2 dialect."""
+        return f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+    
     # Collection Configuration
     DOCUMENTS_COLLECTION_NAME: str = os.getenv("DOCUMENTS_COLLECTION_NAME")
     

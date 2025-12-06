@@ -15,11 +15,15 @@ from app.core.config import settings
 
 
 # ===================== PASSWORD HASHING =====================
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Using Argon2 - modern, secure, and handles any password length
+pwd_context = CryptContext(
+    schemes=["argon2"],
+    deprecated="auto"
+)
 
 
 def hash_password(password: str) -> str:
-    """Hash a plain password using bcrypt."""
+    """Hash a plain password using Argon2."""
     return pwd_context.hash(password)
 
 
